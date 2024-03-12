@@ -1,0 +1,186 @@
+Program.Sub.ScreenSU.Start
+Gui.FormRackCleanup..Create
+Gui.FormRackCleanup..Caption("Rack Cleanup")
+Gui.FormRackCleanup..Size(5835,1545)
+Gui.FormRackCleanup..MinX(0)
+Gui.FormRackCleanup..MinY(0)
+Gui.FormRackCleanup..Position(0,0)
+Gui.FormRackCleanup..BackColor(-2147483633)
+Gui.FormRackCleanup..MousePointer(0)
+Gui.FormRackCleanup..Event(UnLoad,FormRackCleanup_UnLoad)
+Gui.FormRackCleanup.txtRack.Create(TextBox,"",True,1215,300,0,105,330,True,0,"Arial",8,-2147483643,1)
+Gui.FormRackCleanup.txtRack.Event(LostFocus,txtRack_LostFocus)
+Gui.FormRackCleanup.txtRack.Event(KeyPressEnter,txtRack_KeyPressEnter)
+Gui.FormRackCleanup.lblRack.Create(Label,"Rack",True,1935,255,0,105,105,True,0,"Arial",8,-2147483633,0)
+Gui.FormRackCleanup.cmdRack.Create(Button)
+Gui.FormRackCleanup.cmdRack.Size(405,375)
+Gui.FormRackCleanup.cmdRack.Position(1425,300)
+Gui.FormRackCleanup.cmdRack.Caption("^")
+Gui.FormRackCleanup.cmdRack.Event(Click,cmdRack_Click)
+Gui.FormRackCleanup.cmdCleanup.Create(Button)
+Gui.FormRackCleanup.cmdCleanup.Size(855,375)
+Gui.FormRackCleanup.cmdCleanup.Position(135,765)
+Gui.FormRackCleanup.cmdCleanup.Caption("Cleanup")
+Gui.FormRackCleanup.cmdCleanup.Event(Click,cmdCleanup_Click)
+Program.Sub.ScreenSU.End
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	Gui.FormRackCleanup..Show
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(FormRackCleanup_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.FormRackCleanup_UnLoad.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.Intrinsic.Control.End
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.FormRackCleanup_UnLoad.End
+
+Program.Sub.cmdRack_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	V.Local.sWidths.Declare(String,"")
+	V.Local.sTitles.Declare(String,"")
+	
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	
+	V.Local.sSql.Set("Select Rack From GCG_4773_Racks Order By Rack")
+	V.Local.sWidths.Set("1800")
+	V.Local.sTitles.Set("Rack")
+	
+	F.Intrinsic.String.Split(V.Local.sTitles,"*!*",V.Local.sTitles)
+	F.Intrinsic.String.Split(V.Local.sWidths,"*!*",V.Local.sWidths)
+	
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	
+	F.Intrinsic.UI.Browser("Select Rack","con",V.Local.sSql,V.Local.sTitles,V.Local.sWidths,10200,9000,V.Local.sRack)
+	
+	F.Intrinsic.Control.If(V.Local.sRack.UCase,<>,V.Ambient.NoReturn)
+		F.ODBC.Connection!Con.Close
+		Gui.FormRackCleanup.txtRack.Text(V.Local.sRack.Trim)
+		F.Intrinsic.Control.CallSub(txtRack_LostFocus)
+	F.Intrinsic.Control.Else
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(FormRackCleanup_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdRack_Click.End
+
+Program.Sub.cmdCleanup_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sMsg.Declare(String,"")
+	V.Local.iRet.Declare(Long,0)
+	V.Local.sSql.Declare(String,"")
+	
+	V.Local.sRack.Set(V.Screen.FormRackCleanup!txtRack.Text)
+	
+	F.Intrinsic.Control.If(V.Local.sRack.Trim,<>,"")
+		F.Intrinsic.String.Build("Are you sure you want to Deleate records from Rack {0}",V.Local.sRack.Trim,V.Local.sMsg)
+		F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Rack Cleanup",4,V.Local.iRet)
+		F.Intrinsic.Control.If(V.Local.iRet,=,6)
+			F.ODBC.Connection!Con.OpenCompanyConnection
+			F.Intrinsic.String.Build("Delete From GCG_4773_PL_In_Pros Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+			F.ODBC.Connection!Con.Execute(V.Local.sSql)
+			F.Intrinsic.String.Build("Delete From GCG_4773_Paint_Line Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+			F.ODBC.Connection!Con.Execute(V.Local.sSql)
+			F.Intrinsic.String.Build("Delete From GCG_4773_PROC_STEP Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+			F.ODBC.Connection!Con.Execute(V.Local.sSql)
+			F.Intrinsic.String.Build("Records for Rack {0} have been removed.",V.Local.sRack.Trim,V.Local.sMsg)
+			F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Attention")
+			F.ODBC.Connection!Con.Close
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		F.Intrinsic.UI.Msgbox("Select a Rack.................")
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(FormRackCleanup_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdCleanup_Click.End
+
+Program.Sub.txtRack_LostFocus.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	
+	V.Local.sRack.Set(V.Screen.FormRackCleanup!txtRack.Text)
+	F.Intrinsic.Control.If(V.Local.sRack.Trim,<>,"")
+		F.ODBC.Connection!con.OpencompanyConnection
+		F.Intrinsic.String.Build("Select Rack From GCG_4773_Racks Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+		F.Intrinsic.Control.If(V.ODBC.Connection!con.EOF,=,True)
+			F.Intrinsic.UI.Msgbox("Current Rack not valid")
+		F.Intrinsic.Control.EndIf
+		F.ODBC.Connection!con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(FormRackCleanup_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtRack_LostFocus.End
+
+Program.Sub.txtRack_KeyPressEnter.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.Intrinsic.Control.CallSub(txtRack_LostFocus)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Cleanup.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(FormRackCleanup_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtRack_KeyPressEnter.End
