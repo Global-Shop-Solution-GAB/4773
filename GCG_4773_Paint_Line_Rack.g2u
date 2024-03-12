@@ -1,0 +1,1228 @@
+Program.Sub.ScreenSU.Start
+Gui.Form_Paint_Line..Create
+Gui.Form_Paint_Line..Caption("Paint Line")
+Gui.Form_Paint_Line..Size(15360,10740)
+Gui.Form_Paint_Line..MinX(0)
+Gui.Form_Paint_Line..MinY(0)
+Gui.Form_Paint_Line..Position(0,0)
+Gui.Form_Paint_Line..BackColor(-2147483633)
+Gui.Form_Paint_Line..MousePointer(0)
+Gui.Form_Paint_Line..Event(UnLoad,Form_Paint_Line_UnLoad)
+Gui.Form_Paint_Line.lblRack.Create(Label,"Select Rack",True,1590,255,0,4215,165,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.GsGridControl_Paint.Create(GsGridControl)
+Gui.Form_Paint_Line.GsGridControl_Paint.Size(6645,8655)
+Gui.Form_Paint_Line.GsGridControl_Paint.Position(105,855)
+Gui.Form_Paint_Line.cmdStart/Stop.Create(Button)
+Gui.Form_Paint_Line.cmdStart/Stop.Size(1710,615)
+Gui.Form_Paint_Line.cmdStart/Stop.Position(105,9750)
+Gui.Form_Paint_Line.cmdStart/Stop.Caption("Start Time")
+Gui.Form_Paint_Line.cmdStart/Stop.Event(Click,cmdStart/Stop_Click)
+Gui.Form_Paint_Line.cmdStart/Stop.TabStop(True)
+Gui.Form_Paint_Line.cmdStart/Stop.TabIndex(2)
+Gui.Form_Paint_Line.GsGridControlTime.Create(GsGridControl)
+Gui.Form_Paint_Line.GsGridControlTime.Size(8145,8655)
+Gui.Form_Paint_Line.GsGridControlTime.Position(6915,855)
+Gui.Form_Paint_Line.chkTime.Create(CheckBox)
+Gui.Form_Paint_Line.chkTime.Size(2355,360)
+Gui.Form_Paint_Line.chkTime.Position(1920,10005)
+Gui.Form_Paint_Line.chkTime.Caption("Apply time based on Qty")
+Gui.Form_Paint_Line.chkTime.Event(Click,chkTime_Click)
+Gui.Form_Paint_Line.chkTime.TabStop(True)
+Gui.Form_Paint_Line.chkTime.TabIndex(3)
+Gui.Form_Paint_Line.cmdSubmit.Create(Button)
+Gui.Form_Paint_Line.cmdSubmit.Size(1710,615)
+Gui.Form_Paint_Line.cmdSubmit.Position(5715,9750)
+Gui.Form_Paint_Line.cmdSubmit.Caption("Submit Time")
+Gui.Form_Paint_Line.cmdSubmit.Event(Click,cmdSubmit_Click)
+Gui.Form_Paint_Line.cmdSubmit.TabStop(True)
+Gui.Form_Paint_Line.cmdSubmit.TabIndex(6)
+Gui.Form_Paint_Line.cboWC.Create(ComboBox)
+Gui.Form_Paint_Line.cboWC.Size(1095,330)
+Gui.Form_Paint_Line.cboWC.Position(4395,10035)
+Gui.Form_Paint_Line.cboWC.TabStop(True)
+Gui.Form_Paint_Line.cboWC.TabIndex(5)
+Gui.Form_Paint_Line.lblWC.Create(Label,"Work Center",True,1320,255,0,4395,9810,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.lblEmp.Create(Label,"Employee",True,1455,255,0,105,165,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.txtEmp.Create(TextBox,"",True,1545,300,0,90,405,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Paint_Line.txtEmp.Event(KeyPressEnter,txtEmp_KeyPressEnter)
+Gui.Form_Paint_Line.txtEmp.PasswordChar("*")
+Gui.Form_Paint_Line.txtEmp.Event(GotFocus,txtEmp_GotFocus)
+Gui.Form_Paint_Line.cboRack.Create(ComboBox)
+Gui.Form_Paint_Line.cboRack.Size(1650,330)
+Gui.Form_Paint_Line.cboRack.Position(4215,390)
+Gui.Form_Paint_Line.cboRack.TabStop(True)
+Gui.Form_Paint_Line.cboRack.TabIndex(1)
+Gui.Form_Paint_Line.cboRack.Event(Click,cboRack_Click)
+Gui.Form_Paint_Line.lblRackinPros.Create(Label,"Current Rack(s) in Process for Scanned Employee",True,4395,255,0,6000,165,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.lvwRackinPros.Create(ListView)
+Gui.Form_Paint_Line.lvwRackinPros.Size(9060,375)
+Gui.Form_Paint_Line.lvwRackinPros.Position(6000,390)
+Gui.Form_Paint_Line.lvwRackinPros.View(0)
+Gui.Form_Paint_Line.txtEmpName.Create(TextBox,"",True,2355,300,0,1725,405,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Paint_Line.lblEmpName.Create(Label,"Employee Name",True,1935,255,0,1725,165,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.chkFlex.Create(CheckBox)
+Gui.Form_Paint_Line.chkFlex.Size(2115,300)
+Gui.Form_Paint_Line.chkFlex.Position(1920,9750)
+Gui.Form_Paint_Line.chkFlex.Caption("Create Flex Schedule")
+Gui.Form_Paint_Line.lblLabelPrinter.Create(Label,"Label Printer",True,1935,255,0,7635,9810,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint_Line.cboLabelPrinter.Create(ComboBox)
+Gui.Form_Paint_Line.cboLabelPrinter.Size(1815,330)
+Gui.Form_Paint_Line.cboLabelPrinter.Position(7635,10035)
+Gui.Form_Paint_Line.cboLabelPrinter.Event(Click,cboLabelPrinter_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.sPrevRack.Declare(String,"")
+V.Global.sProcType.Declare(String,"")
+V.Global.iTQty.Declare(Long,0)
+V.Global.bFlex.Declare(Boolean,False)
+Program.External.Include.Library("JB0455.lib")
+Program.External.Include.Library("6000.lib")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sFile.Declare(String,"")
+	V.Local.bRet.Declare(Boolean,False)
+
+	'This project is for Time Tracking based on what has been scanned to a particular Rack.  Once the applied time has been submitted it will be then updload into Global Shop.
+	'Until then no detail records will be displayed in GSS.
+	
+	F.Intrinsic.Control.BlockEvents
+	'creating dictoinaries and datatables for use throughout the program
+	F.Intrinsic.Control.CallSub(Build_Empty_DT)
+	'setting properties to gridcontrols
+	F.Intrinsic.Control.CallSub(Set_Properties)
+	'setting achors to controls on the grid
+	F.Intrinsic.Control.CallSub(Set_Achors)
+	'showing form
+	Gui.Form_Paint_Line..Show
+	
+	'setting focus to employee textbox to be ready for user to scan emp badge.
+	Gui.Form_Paint_Line.txtEmp.SetFocus
+	Gui.Form_Paint_Line.txtEmp.SelectAll
+	
+	F.Intrinsic.Control.If(V.Caller.GlobalDir.Right1,<>,"\")
+		F.Intrinsic.String.Build("{0}\",V.Caller.GlobalDir,V.Local.sFile)
+	F.Intrinsic.Control.Else
+		V.Local.sFile.Set(V.Caller.GlobalDir)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}Custom\",V.Local.sFile,V.Local.sFile)
+	F.Intrinsic.File.DirExists(V.Local.sFile,V.Local.bRet)
+	F.Intrinsic.Control.If(V.Local.bRet,=,False)
+		F.Intrinsic.File.CreateDir(V.Local.sFile)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}4773\",V.Local.sFile,V.Local.sFile)
+	F.Intrinsic.File.DirExists(V.Local.sFile,V.Local.bRet)
+	F.Intrinsic.Control.If(V.Local.bRet,=,False)
+		F.Intrinsic.File.CreateDir(V.Local.sFile)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}{1}4773Printer.txt",V.Local.sFile,V.Caller.CompanyCode,V.Local.sFile)
+	
+	F.Intrinsic.File.Exists(V.Local.sFile,V.Local.bRet)
+	F.Intrinsic.Control.If(V.Local.bRet)
+		F.Intrinsic.File.File2String(V.Local.sFile,V.Local.sFile)
+		Gui.Form_Paint_Line.cboLabelPrinter.Text(V.Local.sFile)
+	F.Intrinsic.Control.EndIf
+	
+	Gui.Form_Paint_Line.cmdSubmit.Enabled(False)
+	
+	F.Intrinsic.Control.UnBlockEvents
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.cmdStart/Stop_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sEmp.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sDate.Declare(String)
+	V.Local.i.Declare(Long,0)
+	V.Local.sSql.Declare(String,"")
+	V.Local.sFilter.Declare(String,"")
+	V.Local.dEnd.Declare(Date,"")
+	V.Local.sRet.Declare(String,"")
+	V.Local.sTemp.Declare(String,"")
+	V.Local.sTime.Declare(String,"")
+	V.Local.fPer.Declare(Float,0)
+	
+	V.Local.sDate.Set(V.Ambient.Now)
+	
+	V.Local.sRack.Set(V.Screen.Form_Paint_Line!cboRack.Value)
+	V.Local.sEmp.Set(V.Screen.Form_Paint_Line!txtEmp.Text)
+	'checking that a rack and employee text boxes are filled out before allowing user to start/stop time.
+	F.Intrinsic.Control.If(V.Local.sRack.Trim,<>,"","AND",V.Local.sEmp.Trim,<>,"")
+		F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!cmdStart/Stop.Caption,=,"Start Time")
+			'adding record for start time
+			Gui.Form_Paint_Line.cmdSubmit.Enabled(False)
+			F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.JobSuffix.RowCount--,1)
+				F.Data.DataTable.AddRow("InPros","Proc_No",0,"Rack",V.Local.sRack.Trim,"Job",V.DataTable.JobSuffix(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.JobSuffix(V.Local.i).Suffix!FieldValTrim,"Proc_Start",V.Local.sDate,"Employee_Name",V.Screen.Form_Paint_Line!txtEmpName.Text,"Employee",V.Screen.Form_Paint_Line!txtEmp.Text,"Proc_Type",V.Global.sProcType)
+				Gui.Form_Paint_Line.cmdStart/Stop.Caption("Stop Time")
+			F.Intrinsic.Control.Next(V.Local.i)
+				F.Data.DataTable.AddRow("PLSave","Proc_No",0,"Rack",V.Local.sRack.Trim,"Proc_Start",V.Local.sDate,"Employee",V.Screen.Form_Paint_Line!txtEmp.Text,"Proc_Type",V.Global.sProcType)
+		F.Intrinsic.Control.Else
+			'stoping time for current employee on current rack
+			F.Intrinsic.String.Build("Employee = '{0}' and Proc_Stop is null",V.Screen.Form_Paint_Line!txtEmp.Text,V.Local.sFilter)
+			F.Data.DataView.Create("InPros","TempInpros",22,V.Local.sFilter,"")
+			F.Data.DataView.Create("PLSave","TempPLSave",22,V.Local.sFilter,"")
+			V.Local.dEnd.Set(V.Ambient.Now)
+			F.Intrinsic.Control.For(V.Local.i,0,V.DataView.InPros!TempInpros.RowCount--,1)
+				F.Intrinsic.Date.DateDiff("S",V.DataView.InPros!TempInpros(V.Local.i).Proc_Start!FieldVal,V.Local.dEnd,V.Local.sTemp)
+				F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!chkTime.Value,=,1)
+					F.Intrinsic.String.Build("Job = '{0}' and Suffix = '{1}'",V.DataView.InPros!TempInpros(V.Local.i).Job!FieldValTrim,V.DataView.InPros!TempInpros(V.Local.i).Suffix!FieldValTrim,V.Local.sFilter)
+					F.Data.DataTable.Select("JobSuffix",V.Local.sFilter,V.Local.sRet)
+					F.Intrinsic.Math.Div(V.DataTable.JobSuffix(V.Local.sRet.Long).Qty_Scanned!FieldValLong,V.Global.iTQty,V.Local.fPer)
+					F.Intrinsic.Math.Mult(v.Local.sTemp.Float,v.Local.fPer,v.Local.sTime)
+				F.Intrinsic.Control.Else
+					F.Intrinsic.Math.Div(v.Local.sTemp.Float,V.DataTable.JobSuffix.RowCount,V.Local.sTemp)
+					V.Local.sTime.Set(V.Local.sTemp)
+				F.Intrinsic.Control.EndIf
+				F.Intrinsic.Date.HoursMinutesSecondsToDecimal(0,0,V.Local.sTime.Long,V.Local.sTime)
+				F.Data.DataView.SetValue("InPros","TempInpros",V.Local.i,"Applied_Time",V.Local.sTime)
+			F.Intrinsic.Control.Next(V.Local.i)
+			F.Data.DataView.SetValue("InPros","TempInpros",-1,"Proc_Stop",V.Local.dEnd)
+			F.Data.DataView.SetValue("PLSave","TempPLSave",-1,"Proc_Stop",V.Local.dEnd)
+			F.Data.DataView.Close("InPros","TempInpros")
+			F.Data.DataView.Close("PLSave","TempPLSave")
+			Gui.Form_Paint_Line.cmdStart/Stop.Caption("Start Time")
+			
+			'check to see if there still an employee clocked in on the rack
+			F.Data.DataView.Create("InPros","TempInpros",22,"Proc_Stop is null","")
+			F.Intrinsic.Control.If(V.DataView.InPros!TempInpros.RowCount--,=,-1)
+				Gui.Form_Paint_Line.cmdSubmit.Enabled(True)
+			F.Intrinsic.Control.Else
+				Gui.Form_Paint_Line.cmdSubmit.Enabled(False)
+			F.Intrinsic.Control.EndIf
+			F.Data.DataView.Close("InPros","TempInpros")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.ODBC.ConC.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	
+	'saving in pros records
+	F.Data.DataTable.SaveToDB("PLSave","con","GCG_4773_PL_In_Pros","Proc_No*!*Rack",256,"Proc_No@!@Proc_No*!*Rack@!@Rack*!*Proc_Start@!@Proc_Start*!*Proc_Stop@!@Proc_Stop*!*Proc_Type@!@Proc_Type*!*Employee@!@Employee")
+	'getting Proc No for newely saved records
+	F.Intrinsic.String.Build("Select Top 1 Proc_No From GCG_4773_PL_In_Pros Where Rack = '{0}' Order by Proc_No Desc",V.Local.sRack.Trim,V.Local.sSql)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSql)
+	
+	F.Intrinsic.String.Build("Employee = '{0}' and Proc_Stop is null",V.Screen.Form_Paint_Line!txtEmp.Text,V.Local.sFilter)
+	F.Data.DataView.Create("InPros","TempInpros",22,V.Local.sFilter,"")
+	F.Data.DataView.Create("PLSave","TempPLSave",22,V.Local.sFilter,"")
+	
+	F.Data.DataView.SetValue("InPros","TempInpros",-1,"Proc_No",V.Local.sSql.Long)
+	F.Data.DataView.SetValue("PLSave","TempPLSave",-1,"Proc_No",V.Local.sSql.Long)
+	
+	F.Data.DataView.Close("InPros","TempInpros")
+	F.Data.DataView.Close("PLSave","TempPLSave")
+	
+	F.Data.DataTable.AcceptChanges("PLSave")
+	F.Data.DataTable.AcceptChanges("InPros")
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	Gui.Form_Paint_Line.txtEmp.SetFocus
+	Gui.Form_Paint_Line.txtEmp.SelectAll
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdStart/Stop_Click.End
+
+Program.Sub.cmdSubmit_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sDate.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.sTime.Declare(String,"")
+	V.Local.sSeq.Declare(String,"")
+	V.Local.iC.Declare(Long,0)
+	V.Local.sFilter.Declare(String,"")
+	V.Local.sClosed.Declare(String,"N")
+	V.Local.iQty.Declare(Long,0)
+	V.Local.iScan.Declare(Long,0)
+	V.Local.sRet.Declare(String,"")
+	V.Local.iH.Declare(Long,0)
+	V.Local.iPos.Declare(Long,0)
+	V.Local.sWC.Declare(String,"")
+	V.Local.sComplete.Declare(String,"")
+	V.Local.iRet.Declare(Long,0)
+	
+	V.Local.sWC.Set(V.Screen.Form_Paint_Line!cboWC.Value)
+	V.Local.sRack.Set(V.Screen.Form_Paint_Line!cboRack.Value)
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	'checking if there are any unaplied time before allowing user to submit time for the current Rack
+'	F.Intrinsic.String.Build("Select Rack From GCG_4773_PL_In_Pros Where Rack = '{0}' and Proc_Stop is null",V.Local.sRack.Trim,V.Local.sSql)
+'	F.Data.DataTable.CreateFromSQL("TempRack","con",V.Local.sSql)
+	
+	F.Intrinsic.Control.If(V.Local.sWC.Trim,=,"")
+		F.Intrinsic.UI.Msgbox("Select a WorkCenter to Submit time.","Attention")
+		F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+			F.ODBC.Connection!Con.Close
+		F.Intrinsic.Control.EndIf
+		Gui.Form_Paint_Line.txtEmp.SetFocus
+		Gui.Form_Paint_Line.txtEmp.SelectAll
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.Else
+		
+		'if on last proc_type for current rack check to see if user has selected to create a flex schedule to free up current rack 
+		'addiontal time for current jobs will be track in the gui from the flex schedule.
+		'creating flex schedule if use has create flex schedule checked.
+'		F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!chkFlex.Value,=,1)
+'			F.Intrinsic.Control.CallSub("CreateFlexSched")
+'		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.If(V.Global.bFlex,=,True)
+			F.Intrinsic.UI.Msgbox("Is more time needed for packaging the current Rack and need to create a flex schedule?","Attention",3,V.Local.iRet)
+			F.Intrinsic.Control.CallSub(Print_Kitting_Labels)
+			F.Intrinsic.Control.If(V.Local.iRet,=,2)
+				F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+					F.ODBC.Connection!Con.Close
+				F.Intrinsic.Control.EndIf
+				Gui.Form_Paint_Line.txtEmp.SetFocus
+				Gui.Form_Paint_Line.txtEmp.SelectAll
+				F.Intrinsic.Control.ExitSub
+			F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.If(V.Local.iRet,=,6)
+				F.Intrinsic.Control.CallSub(CreateFlexSched)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		
+		'applying time to Job Suffix in GSS and moving in process time to new table for reporting purposes.
+		F.Data.DataView.Create("InPros","VInPros")
+		F.Data.DataView.ToDataTableDistinct("InPros","VInPros","JSE","Job*!*Suffix")
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.JSE.RowCount--,1)
+			'needing to get seq for current proc type
+			F.Intrinsic.String.Build("Select Seq From V_Job_Operations Where LMO = 'L' and Part = '{0}' and Job = '{1}' and Suffix = '{2}'",V.Global.sProcType.Trim,V.DataTable.JSE(V.DataTable.JSE.RowCount--).Job!FieldValTrim,V.DataTable.JSE(V.DataTable.JSE.RowCount--).Suffix!FieldValTrim,V.Local.sSql)
+			F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+				F.ODBC.Connection!Con.OpenCompanyConnection
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSeq)
+			F.Intrinsic.String.Build("Job = '{0}' and Suffix = '{1}'",V.DataTable.JSE(V.DataTable.JSE.RowCount--).Job!FieldValTrim,V.DataTable.JSE(V.DataTable.JSE.RowCount--).Suffix!FieldValTrim,V.Local.sFilter)
+			
+			'needing to check to see if to close the seq
+			F.Data.DataView.SetFilter("InPros","VInPros",V.Local.sFilter)
+			F.Data.DataTable.Select("JobSuffix",V.Local.sFilter,V.Local.iPos)
+			F.Data.DataView.SetSort("InPros","VInPros","Proc_Stop")
+			
+			F.Intrinsic.Control.For(V.Local.iC,0,V.DataView.InPros!VInPros.RowCount--,1)
+				F.Intrinsic.String.Format(V.DataTable.InPros(V.Local.i).Proc_Start!FieldVal,"MMDDYY",V.Local.sDate)
+				F.Intrinsic.String.Format(V.DataTable.InPros(V.Local.i).Applied_Time!FieldVal,"0.00",V.Local.sTime)
+				F.Intrinsic.Control.If(V.Local.iC,=,V.DataView.InPros!VInPros.RowCount--)
+					F.Intrinsic.String.Build("Select Qty_Scanned, Qty_Ordered From GCG_4773_PL_Hist Where Job = '{0}' and Suffix = '{1}' and Proc_Type = '{2}'",V.DataTable.InPros(V.Local.i).Job!FieldValTrim,V.DataTable.InPros(V.Local.i).Suffix!FieldValTrim,V.Global.sProcType,V.Local.sSql)
+					F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+						F.ODBC.Connection!Con.OpenCompanyConnection
+					F.Intrinsic.Control.EndIf
+					F.Data.DataTable.CreateFromSQL("HistJobSuffix","con",V.Local.sSql)
+					F.Intrinsic.Control.If(V.DataTable.HistJobSuffix.RowCount--,<>,-1)
+						F.Intrinsic.Control.For(V.Local.iH,0,V.DataTable.HistJobSuffix.RowCount--,1)
+							F.Intrinsic.Math.Add(V.Local.iQty,V.DataTable.HistJobSuffix(V.Local.iH).Qty_Scanned!FieldValLong,V.Local.iQty)
+						F.Intrinsic.Control.Next(V.Local.iH)
+						F.Intrinsic.Control.If(V.Local.iQty,=,V.DataTable.HistJobSuffix(V.DataTable.HistJobSuffix.RowCount--).Qty_Ordered!FieldValLong)
+'							F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!chkFlex.Value,=,0)
+							F.Intrinsic.Control.If(V.Local.iRet,=,7)
+								V.Local.sClosed.Set("Y")
+							F.Intrinsic.Control.Else
+								V.Local.sClosed.Set("N")
+							F.Intrinsic.Control.EndIf
+						F.Intrinsic.Control.Else
+							V.Local.sClosed.Set("Y")
+						F.Intrinsic.Control.EndIf
+					F.Intrinsic.Control.Else
+						V.Local.sClosed.Set("N")
+					F.Intrinsic.Control.EndIf
+					F.Intrinsic.String.Format(V.DataTable.JobSuffix(V.Local.iPos).Qty_Scanned!FieldValLong,"0.00",V.Local.sComplete)
+					F.Data.DataTable.AddRow("JB0455","Date",V.Local.sDate,"Employee",V.DataTable.InPros(V.Local.i).Employee!FieldValTrim,"Job",V.DataTable.InPros(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.InPros(V.Local.i).Suffix!FieldValTrim,"Seq",V.Local.sSeq,"Closed",V.Local.sClosed,"Hours",V.Local.sTime,"RateType","R","GoodPcs",V.Local.sComplete,"WC",V.Local.sWC.Trim)
+					F.Data.DataTable.Close("HistJobSuffix")
+				F.Intrinsic.Control.Else
+					F.Data.DataTable.AddRow("JB0455","Date",V.Local.sDate,"Employee",V.DataTable.InPros(V.Local.i).Employee!FieldValTrim,"Job",V.DataTable.InPros(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.InPros(V.Local.i).Suffix!FieldValTrim,"Seq",V.Local.sSeq,"Closed","N","Hours",V.Local.sTime,"RateType","R","WC",V.Local.sWC.Trim)
+				F.Intrinsic.Control.EndIf
+				
+			F.Intrinsic.Control.Next(V.Local.iC)
+		F.Intrinsic.Control.Next(V.Local.i)
+		F.Data.DataView.Close("InPros","VInPros")
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.CallSub(JB0455Sync)
+	F.Data.DataTable.AcceptChanges("JB0455")
+	
+	F.Intrinsic.String.Build("Select Rack, Proc_Type, Proc_Type_Closed From GCG_4773_Proc_Step Where Rack = '{0}' and Proc_Type = '{1}'",V.Local.sRack.Trim,V.Global.sProcType.Trim,V.Local.sSql)
+	F.Data.DataTable.CreateFromSQL("ProcType","con",V.Local.sSql)
+	F.Data.DataTable.SetValue("ProcType",-1,"Proc_Type_Closed",True)
+	
+	F.Data.DataTable.SaveToDB("ProcType","con","GCG_4773_Proc_Step","Rack*!*Proc_Type",3,"Rack@!@Rack*!*Proc_Type@!@Proc_Type*!*Proc_Type_Closed@!@Proc_Type_Closed")
+	
+	F.Data.DataTable.Close("ProcType")
+	
+	F.Data.DataTable.Merge("PlSave","HistInPros",True,2)
+	F.Data.DataTable.Merge("JobSuffix","PLHist",True,2)
+	
+	F.Intrinsic.String.Build("Delete From GCG_4773_PL_In_Pros Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	
+	F.Data.DataTable.SetValue("PLHist",-1,"Proc_Type",V.Global.sProcType.Trim)
+	
+	'remove records from in pros table.
+	
+	'close current Proc type
+	
+	F.ODBC.Connection!Con.GetID("GCG_4773_PL_Hist","Hist_No",True,V.Local.iH)
+	
+	F.Data.DataTable.SetValue("HistInPros",-1,"Hist_No",V.Local.iH)
+	F.Data.DataTable.SetValue("PLHist",-1,"Hist_No",V.Local.iH)
+	
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.PLHist.RowCount--,1)
+		F.Intrinsic.String.Build("Job = '{0}' and Suffix = '{1}'",V.DataTable.PLHist(V.Local.i).Job!FieldValTrim,V.DataTable.PLHist(V.Local.i).Suffix!FieldValTrim,V.Local.sFilter)
+		F.Data.DataTable.Select("JobSuffix",V.Local.sFilter,V.Local.iPos)
+		F.Data.DataTable.SetValue("PLHist",V.Local.i,"Qty_Ordered",V.DataTable.JobSuffix(V.Local.iPos).Qty_Ordered!FieldValLong)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Data.DataTable.SaveToDB("HistInPros","con","GCG_4773_PL_Pros","Hist_No",128,"Hist_No@!@Hist_No*!*Proc_No@!@Proc_No*!*Rack@!@Rack*!*Proc_Type@!@Proc_Type*!*Proc_Start@!@Proc_Start*!*Proc_Stop@!@Proc_Stop*!*Employee@!@Employee")
+	F.Data.DataTable.SaveToDB("PLHist","con","GCG_4773_PL_Hist","Hist_No",128,"Hist_No@!@Hist_No*!*Rack@!@Rack*!*Job@!@Job*!*Suffix@!@Suffix*!*Part@!@Part*!*Description@!@Description*!*Qty_Scanned@!@Qty_Scanned*!*Qty_Ordered@!@Qty_Ordered*!*Proc_Type@!@Proc_Type")
+	
+	F.Data.DataTable.DeleteRow("HistInPros")
+	F.Data.DataTable.DeleteRow("PLHist")
+	F.Data.DataTable.AcceptChanges("HistInPros")
+	F.Data.DataTable.AcceptChanges("PLHist")
+	F.Data.DataTable.DeleteRow("PLSave")
+	F.Data.DataTable.AcceptChanges("PLSave")
+	
+	F.Data.DataTable.DeleteRow("InPros")
+	F.Data.DataTable.DeleteRow("JobSuffix")
+	
+	F.Data.DataTable.AcceptChanges("InPros")
+	F.Data.DataTable.AcceptChanges("JobSuffix")
+	F.Data.DataTable.AcceptChanges("PLSave")
+	
+'	F.Data.DataTable.Close("TempRack")
+	
+	'cleaning up in pros tables if last proc step for rack has been submitted
+	F.Intrinsic.Control.If(V.Global.bFlex)
+		F.Intrinsic.String.Build("Delete From GCG_4773_PL_In_Pros Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSql)
+		F.Intrinsic.String.Build("Delete From GCG_4773_Paint_Line Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSql)
+		F.Intrinsic.String.Build("Delete From GCG_4773_PROC_STEP Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.BlockEvents
+	Gui.Form_Paint_Line.cboRack.ListIndex(0)
+	Gui.Form_Paint_Line.cboRack.ClearItems
+	Gui.Form_Paint_Line.txtEmp.Text("")
+	Gui.Form_Paint_Line.txtEmpName.Text("")
+	Gui.Form_Paint_Line.chkFlex.Value(0)
+	Gui.Form_Paint_Line.chkFlex.Visible(False)
+	Gui.Form_Paint_Line.cboLabelPrinter.Visible(False)
+	Gui.Form_Paint_Line.lblLabelPrinter.Visible(False)
+	Gui.Form_Paint_Line.cboWC.ListIndex(0)
+	Gui.Form_Paint_Line.cboWC.ClearItems
+	F.Intrinsic.Control.UnBlockEvents
+	
+	Gui.Form_Paint_Line..Caption("Paint Line")
+	
+	V.Global.sPrevRack.Set("")
+	V.Global.iTQty.Set(0)
+	V.Global.sProcType.Set("")
+	V.Global.bFlex.Set(False)
+	
+	Gui.Form_Paint_Line.txtEmp.SetFocus
+	Gui.Form_Paint_Line.txtEmp.SelectAll
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdSubmit_Click.End
+
+Program.Sub.Form_Paint_Line_UnLoad.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.End
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Form_Paint_Line_UnLoad.End
+
+Program.Sub.Build_Empty_DT.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	
+	'creating dictionary for employee name
+	F.Data.Dictionary.CreateFromSQL("Emp","con","Select Employee, rtrim(Name) From V_Employee_Mstr")
+	F.Data.Dictionary.SetDefaultReturn("Emp"," ")
+	
+	F.ODBC.Connection!ConC.OpenConnection(V.Ambient.Ccon,V.Ambient.Cuser,V.Ambient.Cpass)
+	
+	'creating datatable for sentinel enabled printers
+	V.Local.sSql.Set("Select PrinterName, rtrim(Sentinelalias) From Server_Printers Where Sentinelenabled = 1 Order By Sentinelalias")
+	F.Data.Dictionary.CreateFromSQL("Printer","ConC",V.Local.sSql)
+
+	F.ODBC.Connection!ConC.Close
+	
+	Gui.Form_Paint_Line.cboLabelPrinter.AddItem(" ",0)
+	Gui.Form_Paint_Line.cboLabelPrinter.AddItems("Dictionary","Printer")
+
+	'creating empty datatables that will be used throughout the program
+	'table for holding job,suffix on selected rack
+	F.Intrinsic.String.Build("Select Rack, Job, Suffix, Part, Description, Qty_Scanned, Qty_Ordered From GCG_4773_Paint_Line Where Rack = '{0}'","",V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.CreateFromSQL("JobSuffix","con",V.Local.sSql,True)
+	'datatable for showin current in pros time for each job/suffix
+	F.Intrinsic.String.Build("Select Cast(Proc_No as BigInt) as Proc_No, Rack, '' as Job, '' as Suffix, Proc_Type, Employee, '' as Employee_Name, Proc_Start, Proc_Stop, '' as Applied_Time From GCG_4773_PL_In_Pros Where Rack = '{0}'","",V.Local.sSql)
+	F.Data.DataTable.CreateFromSQL("InPros","con",V.Local.sSql,True)
+	'datatable used for saving time records
+	F.Intrinsic.String.Build("Select Proc_No, Rack, Proc_Type, Employee, Proc_Start, Proc_Stop From GCG_4773_PL_In_Pros Where Rack = '{0}'","",V.Local.sSql)
+	F.Data.DataTable.CreateFromSQL("PLSave","con",V.Local.sSql,True)
+	'tables used for saving in pros time to a hist table for reporting purposes.
+	F.Data.DataTable.CreateFromSQL("PLHist","con","Select Hist_No, Rack, Job, Suffix, Part, Description, Qty_Scanned, Qty_Ordered, Proc_Type From GCG_4773_PL_Hist Where Hist_No = -1",True)
+	F.Data.DataTable.CreateFromSQL("HistInPros","con","Select Hist_No, Proc_No, Rack, Proc_Type, Proc_Start, Proc_Stop, Employee From GCG_4773_PL_Pros Where Hist_No = -1",True)
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Build_Empty_DT.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	
+	'setting properties to the grid
+	Gui.Form_Paint_Line.GsGridControl_Paint.AddGridviewFromDataTable("JobSuffix","JobSuffix")
+	
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","Visible",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Rack","Caption","Rack")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Job","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Job","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Job","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Job","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Job","Caption","Job")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Suffix","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Suffix","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Suffix","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Suffix","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Suffix","Caption","Suffix")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Part","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Part","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Part","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Part","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Part","Caption","Part")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Description","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Description","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Description","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Description","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Description","Caption","Description")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Scanned","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Scanned","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Scanned","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Scanned","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Scanned","Caption","Qty Scanned")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","Caption","Qty Ordered")
+	Gui.Form_Paint_Line.GsGridControl_Paint.SetColumnProperty("JobSuffix","Qty_Ordered","Visible",False)
+	
+	Gui.Form_Paint_Line.GsGridControlTime.AddGridviewFromDatatable("InPros","InPros")
+	
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Job","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Job","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Job","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Job","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Rack","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Rack","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Rack","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Rack","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Rack","Visible",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_No","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_No","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_No","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_No","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_No","Visible",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Suffix","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Suffix","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Suffix","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Suffix","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Type","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Type","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Type","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Type","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Type","Visible",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee","Visible",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee_Name","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee_Name","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee_Name","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee_Name","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Employee_Name","Caption","Emp Name")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Start","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Start","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Start","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Start","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Start","Caption","Start")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Stop","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Stop","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Stop","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Stop","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Proc_Stop","Caption","Stop")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Applied_Time","ReadOnly",True)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Applied_Time","AllowEdit",False)
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Applied_Time","HeaderBackColor","Green")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Applied_Time","HeaderForeColor","White")
+	Gui.Form_Paint_Line.GsGridControlTime.SetColumnProperty("InPros","Applied_Time","Caption","Applied Time")
+	
+	Gui.Form_Paint_Line.GsGridControl_Paint.MainView("JobSuffix")
+	Gui.Form_Paint_Line.GsGridControlTime.MainView("InPros")
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Set_Properties.End
+
+Program.Sub.chkTime_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sTime.Declare(String,"")
+	V.Local.sTemp.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.fPer.Declare(Float,0)
+	V.Local.sFilter.Declare(String,"")
+	V.Local.sRet.Declare(String,"")
+	
+	'updating grid based on if apply time by qty is checked.
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.InPros.RowCount--,1)
+		F.Intrinsic.Control.If(V.DataTable.InPros(V.Local.i).Proc_Stop!FieldVal,<>,"")
+			F.Intrinsic.Date.DateDiff("S",V.DataTable.InPros(V.Local.i).Proc_Start!FieldVal,V.DataTable.InPros(V.Local.i).Proc_Stop!FieldVal,V.Local.sTemp)
+			F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!chkTime.Value,=,1)
+				F.Intrinsic.String.Build("Job = '{0}' and Suffix = '{1}'",V.DataTable.InPros(V.Local.i).Job!FieldValTrim,V.DataTable.InPros(V.Local.i).Suffix!FieldValTrim,V.Local.sFilter)
+				F.Data.DataTable.Select("JobSuffix",V.Local.sFilter,V.Local.sRet)
+				F.Intrinsic.Math.Div(V.DataTable.JobSuffix(V.Local.sRet.Long).Qty_Scanned!FieldValLong,V.Global.iTQty,V.Local.fPer)
+				F.Intrinsic.Math.Mult(v.Local.sTemp.Float,v.Local.fPer,v.Local.sTime)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Math.Div(v.Local.sTemp.Float,V.DataTable.JobSuffix.RowCount,V.Local.sTemp)
+				V.Local.sTime.Set(V.Local.sTemp)
+			F.Intrinsic.Control.EndIf
+			F.Intrinsic.Date.HoursMinutesSecondsToDecimal(0,0,V.Local.sTime.Long,V.Local.sTime)
+			F.Data.DataTable.SetValue("InPros",V.Local.i,"Applied_Time",V.Local.sTime)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.chkTime_Click.End
+
+Program.Sub.Set_Achors.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	
+	'setting Anchors
+	Gui.Form_Paint_Line.GsGridControl_Paint.Anchor(7)
+	Gui.Form_Paint_Line.GsGridControlTime.Anchor(15)
+	Gui.Form_Paint_Line.lvwRackinPros.Anchor(13)
+	
+	Gui.Form_Paint_Line.txtEmp.Anchor(5)
+	Gui.Form_Paint_Line.lblEmp.Anchor(5)
+	Gui.Form_Paint_Line.lblRack.Anchor(5)
+	GUi.Form_Paint_Line.cboRack.Anchor(5)
+	Gui.Form_Paint_Line.cmdEmp.Anchor(5)
+	Gui.Form_Paint_Line.lblRackinPros.Anchor(5)
+	Gui.Form_Paint_Line.lblEmpName.Anchor(5)
+	Gui.Form_Paint_Line.txtEmpName.Anchor(5)
+	
+	Gui.Form_Paint_Line.cmdStart/Stop.Anchor(6)
+	
+	Gui.Form_Paint_Line.lblWC.Anchor(6)
+	Gui.Form_Paint_Line.cboWC.Anchor(6)
+	Gui.Form_Paint_Line.cmdSubmit.Anchor(6)
+	Gui.Form_Paint_Line.chkTime.Anchor(6)
+	Gui.Form_Paint_Line.chkFlex.Anchor(6)
+	Gui.Form_Paint_Line.lblLabelPrinter.Anchor(6)
+	Gui.Form_Paint_Line.cboLabelPrinter.Anchor(6)
+	
+	'hiding check flex schedule this will be unhidden later in the code when it's necessary
+	Gui.Form_Paint_Line.chkFlex.Visible(False)
+	Gui.Form_Paint_Line.cboLabelPrinter.Visible(False)
+	Gui.Form_Paint_Line.lblLabelPrinter.Visible(False)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Set_Achors.End
+
+Program.Sub.txtEmp_KeyPressEnter.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.sTemp.Declare(String,"")
+	
+	V.Global.sPrevRack.Set("")
+	
+	Gui.Form_Paint_Line..Caption("Paint Line")
+	
+	Gui.Form_Paint_Line.chkFlex.Value(0)
+	Gui.Form_Paint_Line.chkFlex.Visible(False)
+	Gui.Form_Paint_Line.cboLabelPrinter.Visible(False)
+	Gui.Form_Paint_Line.lblLabelPrinter.Visible(False)
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.BlockEvents
+	
+	F.Data.DataTable.DeleteRow("JobSuffix")
+	F.Data.DataTable.AcceptChanges("JobSuffix")
+	F.Data.DataTable.DeleteRow("InPros")
+	F.Data.DataTable.AcceptChanges("InPros")
+	Gui.Form_Paint_Line.lvwRackinPros.ClearItems
+		
+	Gui.Form_Paint_Line.cboRack.ClearItems
+	
+	'dictionary for Racks
+	V.Local.sSql.Set("Select Distinct Rack,Rack From GCG_4773_Paint_Line")
+	F.Data.Dictionary.CreateFromSQL("Racks","con",V.Local.sSql)
+	'adding Racks to ComboBox
+	Gui.Form_Paint_Line.cboRack.AddItem(" ",0)
+	Gui.Form_Paint_Line.cboRack.AddItems("Dictionary","Racks")
+	
+	Gui.Form_Paint_Line.cboRack.ListIndex(0)
+	
+	F.Data.Dictionary.Close("Racks")
+	
+	V.Local.sTemp.Set(V.Screen.Form_Paint_Line!txtEmp.Text)
+	F.Intrinsic.Control.If(V.Local.sTemp.Left2,<>,"%/")
+		Gui.Form_Paint_Line.txtEmp.SetFocus
+		Gui.Form_Paint_Line.txtEmp.SelectAll
+		F.Intrinsic.Control.UnBlockEvents
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Split(V.Local.sTemp.Trim,"%/",V.Local.sTemp)
+	V.Local.sTemp.RedimPreserve(0,1)
+	F.Intrinsic.String.Build("Select Employee, Name From V_Employee_Mstr Where Alpha_Sort = '{0}'",V.Local.sTemp(1).Trim,V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSql)
+	
+	F.Intrinsic.Control.If(V.Local.sSql.Length,=,0)
+		F.Intrinsic.UI.Msgbox("Scanned Employee Not Found.  Contact System Admin","Attention")
+		Gui.Form_Paint_Line.txtEmp.SetFocus
+		Gui.Form_Paint_Line.txtEmp.SelectAll
+		F.Intrinsic.Control.UnBlockEvents
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Split(V.Local.sSql,"*!*",V.Local.sSql)
+		Gui.Form_Paint_Line.txtEmp.Text(V.Local.sSql(0).Trim)
+		Gui.Form_Paint_Line.txtEmpName.Text(V.Local.sSql(1).Trim)
+		Gui.Form_Paint_Line.cboRack.SetFocus
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("Select Distinct Rack From GCG_4773_PL_In_Pros Where Employee = '{0}' and Proc_Stop is null",V.Screen.Form_Paint_Line!txtEmp.Text,V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.CreateFromSQL("TempRack","con",V.Local.sSql)
+	
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.TempRack.RowCount--,1)
+		Gui.Form_Paint_Line.lvwRackinPros.AddListItem(V.Local.i,V.DataTable.TempRack(V.Local.i).Rack!FieldValTrim)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Data.DataTable.Close("TempRack")
+	
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.UnBlockEvents
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtEmp_KeyPressEnter.End
+
+Program.Sub.txtEmp_GotFocus.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	
+	Gui.Form_Paint_Line.txtEmp.SelectAll
+
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtEmp_GotFocus.End
+
+Program.Sub.cboRack_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.iC.Declare(Long,0)
+	V.Local.sTime.Declare(String,"")
+	V.Local.sTemp.Declare(String,"")
+	V.Local.fPer.Declare(Float,0)
+	V.Local.sLastProcType.Declare(String,"")
+	V.Local.sDesc.Declare(String,"")
+	
+	F.Intrinsic.Control.BlockEvents
+	
+	Gui.Form_Paint_Line.chkTime.Value(1)
+	
+	F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!txtEmp.Text,=,"")
+		F.Intrinsic.UI.Msgbox("Scan Badge before selecting a Rack")
+		Gui.Form_Paint_Line.cboRack.ListIndex(0)
+		Gui.Form_Paint_Line.txtEmp.SetFocus
+		Gui.Form_Paint_Line.txtEmp.SelectAll
+	F.Intrinsic.Control.Else
+		V.Local.sRack.Set(V.Screen.Form_Paint_Line!cboRack.Value)
+	
+		F.Intrinsic.Control.If(V.Local.sRack,=,V.Global.sPrevRack)
+			F.Intrinsic.Control.ExitSub
+		F.Intrinsic.Control.Else
+			V.Global.sPrevRack.Set(V.Local.sRack)
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,False)
+			F.ODBC.Connection!Con.OpenCompanyConnection
+		F.Intrinsic.Control.EndIf
+	
+		F.Data.DataTable.DeleteRow("JobSuffix")
+		F.Data.DataTable.AcceptChanges("JobSuffix")
+		
+		F.Data.DataTable.DeleteRow("InPros")
+		F.Data.DataTable.AcceptChanges("InPros")
+		
+		F.Intrinsic.String.Build("Select Rack, Job, Suffix, Part, Description, Qty_Scanned, Qty_Ordered From GCG_4773_Paint_Line Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("Temp","con",V.Local.sSql)
+	
+		F.Data.DataTable.Merge("Temp","JobSuffix",False,4)
+	
+		F.Data.DataTable.AddExpressionColumn("Temp","TQty","Long","Sum([Qty_Scanned])")
+		F.Intrinsic.Control.If(V.DataTable.Temp.RowCount--,<>,-1)
+			V.Global.iTQty.Set(V.DataTable.Temp(V.DataTable.Temp.RowCount--).TQty!FieldValLong)
+		F.Intrinsic.Control.Else
+			V.Global.iTQty.Set(0)
+		F.Intrinsic.Control.EndIf
+		
+		F.Data.DataTable.Close("Temp")
+	
+		F.Intrinsic.String.Build("Select Proc_No, Rack, Proc_Type, Employee, Proc_Start, Proc_Stop From GCG_4773_PL_In_Pros Where Rack = '{0}'",V.Local.sRack.Trim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("Temp","con",V.Local.sSql)
+	
+		F.Data.DataTable.Merge("Temp","PLSave",False,4)
+		
+		F.Data.DataTable.Close("Temp")
+		
+		F.Intrinsic.String.Build("Select Top 1 a.Proc_Type, Description From GCG_4773_Proc_Step a Left Join GCG_4773_Proc_Type b on a.Proc_Type = b.Proc_Type Where Proc_Type_Closed = 0 and Rack = '{0}' Order by Proc_Type_Seq",V.Local.sRack.Trim,V.Local.sSql)
+		
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sDesc)
+		F.Intrinsic.String.Split(V.Local.sDesc,"*!*",V.Local.sDesc)
+		
+		F.Intrinsic.Control.If(V.Local.sDesc.UBound,>,0)
+			V.Global.sProcType.Set(V.Local.sDesc(0))
+			Gui.Form_Paint_Line..Caption(V.Local.sDesc(1))
+		F.Intrinsic.Control.Else
+			V.Global.sProcType.Set(v.Local.sDesc)
+			Gui.Form_Paint_Line..Caption("Paint Line")
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.String.Build("Select Top 1 a.Proc_Type From GCG_4773_Proc_Step a Left Join GCG_4773_Proc_Type b on a.Proc_Type = b.Proc_Type Where Rack = '{0}' Order By Proc_Type_Seq Desc",V.Local.sRack.Trim,V.Local.sSql)
+		
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sLastProcType)
+		
+		F.Intrinsic.Control.If(V.Local.sLastProcType.Trim,=,V.Global.sProcType.Trim)
+			F.Intrinsic.Control.If(V.Global.sProcType.Trim,=,"")
+				Gui.Form_Paint_Line.chkFlex.Visible(False)
+				Gui.Form_Paint_Line.cboLabelPrinter.Visible(False)
+				Gui.Form_Paint_Line.lblLabelPrinter.Visible(False)
+				V.Global.bFlex.Set(False)
+			F.Intrinsic.Control.Else
+'				Gui.Form_Paint_Line.chkFlex.Visible(True)
+				Gui.Form_Paint_Line.cboLabelPrinter.Visible(True)
+				Gui.Form_Paint_Line.lblLabelPrinter.Visible(True)
+				V.Global.bFlex.Set(True)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Else
+'			Gui.Form_Paint_Line.chkFlex.Visible(False)
+			Gui.Form_Paint_Line.cboLabelPrinter.Visible(False)
+			Gui.Form_Paint_Line.lblLabelPrinter.Visible(False)
+			V.Global.bFlex.Set(False)
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.String.Build("Select Proc_No, Rack, Proc_Type, Proc_Start, Proc_Stop, Employee From GCG_4773_PL_In_Pros Where Rack = '{0}' and Proc_Type = '{1}'",V.Local.sRack.Trim,V.Global.sProcType.Trim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("TempPros","con",V.Local.sSql)
+		
+		F.Intrinsic.String.Build("Select Proc_No From GCG_4773_PL_In_Pros Where Rack = '{0}' and Proc_Type = '{1}' and Employee = '{2}' and Proc_Stop is Null",V.Local.sRack.Trim,V.Global.sProcType.Trim,V.Screen.Form_Paint_Line!txtEmp.Text,V.Local.sSql)
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSql)
+		
+		F.Intrinsic.Control.If(V.Local.sSql.Length,>,0)
+			Gui.Form_Paint_Line.cmdStart/Stop.Caption("Stop Time")
+			Gui.Form_Paint_Line.cmdSubmit.Enabled(False)
+		F.Intrinsic.Control.Else
+			Gui.Form_Paint_Line.cmdStart/Stop.Caption("Start Time")
+			F.Intrinsic.String.Build("Select Proc_No From GCG_4773_PL_In_Pros Where Rack = '{0}' and Proc_Type = '{1}' and Proc_Stop is Null",V.Local.sRack.Trim,V.Global.sProcType.Trim,V.Local.sSql)
+			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSql)
+			F.Intrinsic.Control.If(V.Local.sSql.Length,>,0)
+				Gui.Form_Paint_Line.cmdSubmit.Enabled(False)
+			F.Intrinsic.Control.Else
+				Gui.Form_Paint_Line.cmdSubmit.Enabled(True)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.TempPros.RowCount--,1)
+			F.Intrinsic.Control.For(V.Local.iC,0,V.DataTable.JobSuffix.RowCount--,1)
+				F.Intrinsic.Control.If(V.DataTable.TempPros(V.Local.i).Proc_Stop!FieldVal,<>,"")
+					F.Intrinsic.Date.DateDiff("S",V.DataTable.TempPros(V.Local.i).Proc_Start!FieldVal,V.DataTable.TempPros(V.Local.i).Proc_Stop!FieldVal,V.Local.sTemp)
+					F.Intrinsic.Control.If(V.Screen.Form_Paint_Line!chkTime.Value,=,1)
+						F.Intrinsic.Math.Div(V.DataTable.JobSuffix(V.Local.iC).Qty_Scanned!FieldValLong,V.Global.iTQty,V.Local.fPer)
+						F.Intrinsic.Math.Mult(v.Local.sTemp.Float,v.Local.fPer,v.Local.sTime)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.Math.Div(v.Local.sTemp.Float,V.DataTable.JobSuffix.RowCount,V.Local.sTemp)
+						V.Local.sTime.Set(V.Local.sTemp)
+					F.Intrinsic.Control.EndIf
+					F.Intrinsic.Date.HoursMinutesSecondsToDecimal(0,0,V.Local.sTime.Long,V.Local.sTime)
+				F.Intrinsic.Control.Else
+					V.Local.sTime.Set("")
+				F.Intrinsic.Control.EndIf
+				F.Data.DataTable.AddRow("InPros","Proc_No",V.DataTable.TempPros(V.Local.i).Proc_No!FieldValLong,"Rack",V.Local.sRack.Trim,"Job",V.DataTable.JobSuffix(V.Local.iC).Job!FieldValTrim,"Suffix",V.DataTable.JobSuffix(V.Local.ic).Suffix!FieldValTrim,"Proc_Type",V.Global.sProcType.Trim,"Employee",V.DataTable.TempPros(V.Local.i).Employee!FieldValTrim,"Proc_Start",V.DataTable.TempPros(V.Local.i).Proc_Start!FieldVal,"Proc_Stop",V.DataTable.TempPros(V.Local.i).Proc_Stop!FieldVal,"Applied_Time",V.Local.sTime)
+			F.Intrinsic.Control.Next(V.Local.iC)
+		F.Intrinsic.Control.Next(V.Local.i)
+		
+		F.Data.DataTable.FillFromDictionary("InPros","Emp","Employee","Employee_Name")
+		
+		F.Intrinsic.String.Build("Select WorkCenter,WorkCenter From V_WORKGROUP_LINE Where WorkGroup = '{0}'",V.Global.sProcType.Trim,V.Local.sSql)
+		F.Data.Dictionary.CreateFromSQL("Machine","con",V.Local.sSql)
+		
+		Gui.Form_Paint_Line.cboWC.ClearItems
+		Gui.Form_Paint_Line.cboWC.AddItem(" ",0)
+		Gui.Form_Paint_Line.cboWC.AddItems("Dictionary","Machine")
+		
+		F.Data.Dictionary.Close("Machine")
+		
+		F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+			F.ODBC.Connection!Con.Close
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.UnBlockEvents
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cboRack_Click.End
+
+Program.Sub.CreateFlexSched.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sScheduleNumber.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	V.Local.fSched.Declare(Float,0)
+	V.Local.iIncrement.Declare(Long,0)
+	V.Local.sIncrement.Declare(String,"")
+	V.Local.sMSeq.Declare(String,"")
+	V.Local.sPart.Declare(String,"")
+	V.Local.sJob.Declare(String,"")
+	V.Local.sSuffix.Declare(String,"")
+	V.Local.sDate.Declare(String,"")
+	V.Local.sWorkCenter.Declare(String,"")
+	V.Local.iRptID.Declare(Long,0)
+	V.Local.iBIRunID.Declare(Long,0)
+	V.Local.iLogID.Declare(Long,0)
+	V.Local.i.Declare(Long,0)
+	V.Local.sSeq.Declare(String,"")
+	
+	'formatting current date.
+	F.Intrinsic.String.Format(V.Ambient.Date,"MMDDYY",V.Local.sDate)
+	
+	F.Data.DataTable.Create("Flex",True)
+	F.Data.DataTable.AddColumn("Flex","SchedNumber","String")
+	F.Data.DataTable.AddColumn("Flex","Job","String")
+	F.Data.DataTable.AddColumn("Flex","Suffix","String")
+	F.Data.DataTable.AddColumn("Flex","Seq","String")
+	
+	F.Data.DataTable.Create("Label",True)
+	F.Data.DataTable.AddColumn("Label","FlexID","String")
+	F.Data.DataTable.AddColumn("Label","OrderNo","String")
+
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.JobSuffix.RowCount--,1)
+		'search for the work center, part and sequence
+	    F.Intrinsic.String.Build("SELECT SEQ FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' and PART = '{2}' ORDER BY SEQ ASC",V.DataTable.JobSuffix(V.Local.i).Job!FieldValTrim,V.DataTable.JobSuffix(V.Local.i).Suffix!FieldValTrim,V.Global.sProcType.Trim,V.Local.sSQL)
+		F.Data.DataTable.CreateFromSQL("JobOp","Con",V.Local.sSql,True)
+		'adding current job/suffix/seq for creating flex schedule 
+		F.Data.DataTable.AddRow("Flex","Job",V.DataTable.JobSuffix(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.JobSuffix(V.Local.i).Suffix!FieldValTrim,"Seq",V.DataTable.JobOp(V.DataTable.JobOp.RowCount--).Seq!FieldValTrim)
+		
+		F.Data.DataTable.Close("JobOp")
+		
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	'getting last schedule number
+	V.Local.sSQL.Set("Select Last_PO_Num From Last_PO Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'")
+	'formatting schedule number
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sScheduleNumber)
+	F.Intrinsic.String.Left(V.Local.sScheduleNumber,6,V.Local.sScheduleNumber)
+
+	'updating last used schedule number
+	F.Intrinsic.Math.Add(V.Local.sScheduleNumber.Long,1,V.Local.fSched)
+	F.Global.General.SaveOption(400817,"0000","","","","",V.Local.fSched,"")
+	
+	F.Intrinsic.String.Build("Update Op_Header Set F_Numeric = '{0}' Where ID = 400817",V.Local.fSched,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+
+	V.Local.sScheduleNumber.Set(V.Local.fSched)
+	
+	F.Intrinsic.String.Format(V.Local.sScheduleNumber,"000000",V.Local.sScheduleNumber)
+	
+	F.Intrinsic.String.Build("Update Last_PO Set Last_PO_Num = '{0}' + substring(Last_PO_Num,7,1) Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'",V.Local.sScheduleNumber,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	
+	V.Local.iIncrement.Set(0)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Flex.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.iIncrement,1,V.Local.iIncrement)
+        F.Intrinsic.String.Format(V.Local.iIncrement,"000000",V.Local.sIncrement)
+		'search for the material sequence
+	    F.Intrinsic.String.Build("SELECT TOP 1 SEQ, PART FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '995000' and LMO = 'M' ORDER BY SEQ ASC",V.DataTable.Flex(V.Local.i).Job!FieldValTrim,V.DataTable.Flex(V.Local.i).Suffix!FieldValTrim,V.DataTable.Flex(V.Local.i).Seq!FieldValTrim,V.Local.sSQL)
+	    F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sMSeq)
+	    F.Intrinsic.String.Split(V.Local.sMSeq,"*!*",V.Local.sMSeq)
+	    V.Local.sMSeq.RedimPreserve(0,1)
+	    V.Local.sPart.Set(V.Local.sMSeq(1))
+	    V.Local.sMSeq.RedimPreserve(0,0)
+	    F.Intrinsic.String.RPad(V.DataTable.Flex(V.Local.i).Job!FieldValTrim," ",6,V.Local.sJob)
+	    F.Intrinsic.String.RPad(V.DataTable.Flex(V.Local.i).Suffix!FieldValTrim," ",3,V.Local.sSuffix)
+	    F.Intrinsic.String.RPad(V.DataTable.Flex(V.Local.i).Seq!FieldValTrim,"0",6,V.Local.sSeq)
+	    F.Intrinsic.String.RPad(V.Local.sMSeq,"0",6,V.Local.sMSeq) 
+	    F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+	    
+	    F.Data.DataTable.AddRow("6000","SchedNumber",V.Local.sScheduleNumber,"SchedIncrement",V.Local.sIncrement,"MatWO",V.Local.sJob,"MatSuff",V.Local.sSuffix,"MatSeq",V.Local.sMSeq,"LabWO",V.Local.sJob,"LabSuff",V.Local.sSuffix,"LabSeq",V.Local.sSeq,"LabWOPart",V.Local.sPart,"LabWorkCenter",V.Global.sProcType.Trim,"SchedFromDate",V.Local.sDate,"SchedToDate",V.Local.sDate,"SchedFromDueDate",V.Local.sDate,"SchedToDueDate",V.Local.sDate)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Data.DataTable.SetValue("Flex",-1,"SchedNumber",V.Local.sScheduleNumber)
+	
+	F.Intrinsic.Control.If(V.DataTable.6000.RowCount--,<>,-1)
+		F.Intrinsic.Control.CallSub(6000Sync)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Flex.RowCount--,1)
+		F.Intrinsic.String.Build("Select Distinct Descr From V_WorkGroup_Head a Join V_Job_CT_Flx_Schd b on a.Work_Group = b.Labor_WC Where Schedule = '{0}'",V.DataTable.Flex(V.Local.i).SchedNumber!FieldValTrim,V.Local.sSql)
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sWorkCenter)
+		F.Intrinsic.String.Split(V.Local.sWorkCenter,"*!*",V.Local.sWorkCenter)
+		F.Intrinsic.String.Build("Work Center: {0}",V.Local.sWorkCenter.Trim,V.Local.sWorkCenter)
+		F.Intrinsic.String.RPad(V.DataTable.Flex(V.Local.i).SchedNumber!FieldValTrim,"0",9,V.Local.sScheduleNumber)
+		F.Data.DataTable.AddRow("Label","FlexID",V.Local.sScheduleNumber,"OrderNo",V.Local.sWorkCenter)
+	F.Intrinsic.Control.Next(V.Local.i)
+
+	F.Data.DataView.Create("Label","Label")
+	F.Data.DataView.ToDataTableDistinct("Label","Label","FlexLabels","FlexID*!*OrderNo",True)
+	F.Data.DataView.Close("Label","Label")
+	F.Intrinsic.Control.If(V.DataTable.FlexLabels.RowCount--,<>,-1)
+		F.Global.BI.GetIDFromName("GCG_4442_FLEX.lab",V.Local.iRptID)
+		F.Global.BI.GetRunID(V.Local.iBIRunID)
+		F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+		F.Global.BI.StopLogging(V.Local.iLogID)
+		F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"FlexLabels","",True)
+	F.Intrinsic.Control.EndIf
+
+	F.Data.DataTable.Close("Flex")
+	F.Data.DataTable.Close("Label")
+	F.Data.DataTable.Close("FlexLabels")
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.CreateFlexSched.End
+
+Program.Sub.Print_Kitting_Labels.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.iBIRunID.Declare(Long,0)
+	V.Local.iRptID.Declare(Long,0)
+	V.Local.iLogID.Declare(Long,0)
+	V.Local.sSql.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.sFile.Declare(String,"")
+	V.Local.sData.Declare(String,"")
+	V.Local.sTemp.Declare(String,"")
+	V.Local.sRack.Declare(String,"")
+	
+	V.Local.sRack.Set(V.Screen.Form_Paint_Line!cboRack.Text)
+	F.Intrinsic.String.Build("{0}\Custom\4773\{1}{2}.txt",V.Caller.GlobalDir,V.Caller.CompanyCode,V.Local.sRack.Trim,V.Local.sFile)
+	
+	F.Intrinsic.File.File2String(V.Local.sFile,V.Local.sData)
+	
+	F.Intrinsic.String.Split(V.Local.sData,V.Ambient.NewLine,V.Local.sData)
+	
+	F.Intrinsic.Control.For(V.Local.i,0,V.Local.sData.UBound,1)
+'	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.JobSuffix.RowCount--,1)
+		F.Intrinsic.String.Split(V.Local.sData(V.Local.i),"-",V.Local.sTemp)
+		V.Local.sTemp.RedimPreserve(0,1)
+		F.Intrinsic.String.Build("Select Top 1 * From GCG_4447_Label_Data Where Job = '{0}' and Suffix = '{1}' Order by JSSI Desc",V.Local.sTemp(0).Trim,V.Local.sTemp(1).Trim,V.Local.sSql)
+'		F.Intrinsic.String.Build("Select Top 1 * From GCG_4447_Label_Data Where Job = '{0}' and Suffix = '{1}' Order by JSSI Desc",V.DataTable.JobSuffix(V.Local.i).Job!FieldValTrim,V.DataTable.JobSuffix(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("LabelTemp","con",V.Local.sSql,True)
+		
+		F.Intrinsic.Control.If(V.DataTable.LabelTemp.RowCount--,<>,-1)
+			F.Data.DataTable.AddColumn("LabelTemp","Label_Copy","Long")
+			F.Data.DataTable.SetValue("LabelTemp",-1,"Label_Copy",1)
+			F.Global.BI.GetIDFromName("GCG_4442_Kitting_Labels.lab",V.Local.iRptID)
+			F.Global.BI.GetRunID(V.Local.iBIRunID)
+			F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+			F.Global.BI.StopLogging(V.Local.iLogID)
+			F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"LabelTemp",V.Screen.Form_Paint_Line!cboLabelPrinter.Text,False)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataTable.Close("LabelTemp")
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	V.Local.sData.Set(" ")
+	
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sData)
+
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Print_Kitting_Labels.End
+
+Program.Sub.cboLabelPrinter_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sFile.Declare(String,"")
+	
+	F.Intrinsic.Control.If(V.Caller.GlobalDir.Right1,<>,"\")
+		F.Intrinsic.String.Build("{0}\",V.Caller.GlobalDir,V.Local.sFile)
+	F.Intrinsic.Control.Else
+		V.Local.sFile.Set(V.Caller.GlobalDir)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}\Custom\4773\{1}4773Printer.txt",V.Local.sFile,V.Caller.CompanyCode,V.Local.sFile)
+	
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Screen.Form_Paint_Line!cboLabelPrinter.Text)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Line_Rack.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Paint_Line_Unload)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cboLabelPrinter_Click.End
