@@ -1,0 +1,626 @@
+Program.Sub.ScreenSU.Start
+Gui.Form_Paint..Create
+Gui.Form_Paint..Caption("Paint Line Flex Schedule")
+Gui.Form_Paint..Size(6750,10395)
+Gui.Form_Paint..MinX(0)
+Gui.Form_Paint..MinY(0)
+Gui.Form_Paint..Position(0,0)
+Gui.Form_Paint..BackColor(-2147483633)
+Gui.Form_Paint..MousePointer(0)
+Gui.Form_Paint..Event(UnLoad,Form_Paint_UnLoad)
+Gui.Form_Paint.cmdPrint.Create(Button)
+Gui.Form_Paint.cmdPrint.Size(855,375)
+Gui.Form_Paint.cmdPrint.Position(105,9525)
+Gui.Form_Paint.cmdPrint.Caption("Print")
+Gui.Form_Paint.cmdPrint.Event(Click,cmdPrint_Click)
+Gui.Form_Paint.txtJobSuffixSeq.Create(TextBox,"",True,2325,300,0,105,405,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Paint.txtJobSuffixSeq.Event(GotFocus,txtJobSuffixSeq_GotFocus)
+Gui.Form_Paint.txtJobSuffixSeq.Event(KeyPressEnter,txtJobSuffixSeq_KeyPressEnter)
+Gui.Form_Paint.lblJobSuffixSeq.Create(Label,"Job Suffix Seq",True,1935,255,0,105,165,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Paint.txtCount.Create(TextBox,"0",True,1215,300,0,2490,405,True,1,"Arial",8,-2147483643,1)
+Gui.Form_Paint.txtCount.Locked(True)
+Gui.Form_Paint.lblCount.Create(Label,"Scanned Count",True,1260,255,0,2475,165,True,1,"Arial",8,-2147483633,0)
+Gui.Form_Paint.GsGridControl_PaintFlex.Create(GsGridControl)
+Gui.Form_Paint.GsGridControl_PaintFlex.Size(6360,8445)
+Gui.Form_Paint.GsGridControl_PaintFlex.Position(105,900)
+Gui.Form_Paint.GsGridControl_PaintFlex.Event(RowCellClick,GsGridControl_PaintFlex_RowCellClick)
+Gui.Form_Paint.ddlPrinter.Create(DropDownList)
+Gui.Form_Paint.ddlPrinter.Size(2670,330)
+Gui.Form_Paint.ddlPrinter.Position(3795,390)
+Gui.Form_Paint.lblPrinter.Create(Label,"Label Printer",True,1260,255,0,5205,165,True,1,"Arial",8,-2147483633,0)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.Global.iRowIndex.Declare(Long,-1)
+Program.External.Include.Library("6000.lib")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+
+F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.ODBC.Connection!ConC.OpenConnection(V.Ambient.Ccon,V.Ambient.Cuser,V.Ambient.Cpass)
+
+'creating datatable for sentinel enabled printers
+V.Local.sSql.Set("Select PrinterName, rtrim(Sentinelalias) From Server_Printers Where Sentinelenabled = 1 Order By Sentinelalias")
+F.Data.Dictionary.CreateFromSQL("Printer","ConC",V.Local.sSql)
+
+Gui.Form_Paint.ddlPrinter.AddItem(" ",0)
+Gui.Form_Paint.ddlPrinter.AddItems("Dictionary","Printer")
+
+'setting anchors
+Gui.Form_Paint.txtJobSuffixSeq.Anchor(5)
+Gui.Form_Paint.lblJobSuffixSeq.Anchor(5)
+Gui.Form_Paint.lblCount.Anchor(5)
+Gui.Form_Paint.txtCount.Anchor(5)
+Gui.Form_Paint.ddlPrinter.Anchor(5)
+Gui.Form_Paint.lblPrinter.Anchor(5)
+Gui.Form_Paint.GsGridControl_PaintFlex.Anchor(15)
+Gui.Form_Paint.cmdPrint.Anchor(6)
+
+'creating datatable for job suffix seq
+F.Data.DataTable.Create("JobSuffixSeq",True)
+F.Data.DataTable.AddColumn("JobSuffixSeq","Job","String")
+F.Data.DataTable.AddColumn("JobSuffixSeq","Suffix","String")
+F.Data.DataTable.AddColumn("JobSuffixSeq","Seq","String")
+
+F.Data.DataTable.Create("PC1",True)
+F.Data.DataTable.AddColumn("PC1","SchedNumber","String")
+F.Data.DataTable.AddColumn("PC1","Job","String")
+F.Data.DataTable.AddColumn("PC1","Suffix","String")
+F.Data.DataTable.AddColumn("PC1","Seq","String")
+
+F.Data.DataTable.Create("PC2",True)
+F.Data.DataTable.AddColumn("PC2","SchedNumber","String")
+F.Data.DataTable.AddColumn("PC2","Job","String")
+F.Data.DataTable.AddColumn("PC2","Suffix","String")
+F.Data.DataTable.AddColumn("PC2","Seq","String")
+
+F.Data.DataTable.Create("PC3",True)
+F.Data.DataTable.AddColumn("PC3","SchedNumber","String")
+F.Data.DataTable.AddColumn("PC3","Job","String")
+F.Data.DataTable.AddColumn("PC3","Suffix","String")
+F.Data.DataTable.AddColumn("PC3","Seq","String")
+
+F.Data.DataTable.Create("SchedNumber",True)
+F.Data.DataTable.AddColumn("SchedNumber","SchedNumber","String")
+F.Data.DataTable.AddColumn("SchedNumber","Job","String")
+F.Data.DataTable.AddColumn("SchedNumber","Suffix","String")
+F.Data.DataTable.AddColumn("SchedNumber","Seq","String")
+
+F.Data.DataTable.Create("Label",True)
+F.Data.DataTable.AddColumn("Label","FlexID","String")
+F.Data.DataTable.AddColumn("Label","OrderNo","String")
+
+'creating context menu
+Gui.Form_Paint..ContextMenuCreate("DeleteLine")
+
+'adding the menu items
+Gui.Form_Paint..ContextMenuAddItem("DeleteLine","Item 0",0)
+Gui.Form_Paint..ContextMenuAddItem("DeleteLine","Item 1",0)
+
+'setting item text
+Gui.Form_Paint..ContextMenuSetItemText("DeleteLine","Item 0","Delete Line")
+Gui.Form_Paint..ContextMenuSetItemText("DeleteLine","Item 1","Scan Override")
+
+'attaching menu to subroutine
+Gui.Form_Paint..ContextMenuSetItemEventHandler("DeleteLine","Item 0",Remove_Line)
+Gui.Form_Paint..ContextMenuSetItemEventHandler("DeleteLine","Item 1",Remove_Line)
+
+F.Intrinsic.Control.CallSub(SetProperties)
+
+Gui.Form_Paint..Show
+
+Gui.Form_Paint.GsGridControl_PaintFlex.MainView("JobSuffixSeq")
+
+Gui.Form_Paint.txtJobSuffixSeq.SetFocus
+
+Gui.Form_Paint.cmdPrint.Enabled(False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.txtJobSuffixSeq_KeyPressEnter.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+V.Local.sRet.Declare(String,"")
+V.Local.iBIRunID.Declare(Long,0)
+V.Local.iRptID.Declare(Long,0)
+V.Local.iLogID.Declare(Long,0)
+V.Local.sSql.Declare(String,"")
+
+V.Local.sRet.Redim(0,0)
+
+gui.Form_Paint.txtJobSuffixSeq.Enabled(False)
+'adding scanned job suffix Seq to DataTable
+F.Intrinsic.String.Split(V.Screen.Form_Paint!txtJobSuffixSeq.Text,"%",V.Local.sRet)
+Gui.Form_Paint.txtJobSuffixSeq.Text(V.Local.sRet(1))
+F.Intrinsic.Control.If(V.Local.sRet.UBound,=,0)
+	Gui.Form_Paint.txtJobSuffixSeq.Text("")
+	Gui.Form_Paint.txtJobSuffixSeq.Enabled(True)
+	Gui.Form_Paint.txtJobSuffixSeq.SetFocus
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+V.Local.sRet.RedimPreserve(0,2)
+V.Local.sRet(1).Set(V.Screen.Form_Paint!txtJobSuffixSeq.Text)
+F.Intrinsic.String.Left(V.Local.sRet(1),6,V.Local.sRet(0))
+F.Intrinsic.String.Right(V.Local.sRet(1),6,V.Local.sRet(2))
+F.Intrinsic.String.Mid(V.Local.sRet(1),7,3,V.Local.sRet(1))
+
+F.Data.DataTable.AddRow("JobSuffixSeq","Job",V.Local.sRet(0),"Suffix",V.Local.sRet(1),"Seq",V.Local.sRet(2))
+
+'reprinting label from GCG_4442_Kitting_Labels when the job suffix seq gets scanned
+F.Intrinsic.String.Build("Select Top 1 * From GCG_4447_Label_Data Where Job = '{0}' and Suffix = '{1}' Order by JSSI Desc",V.Local.sRet(0),V.Local.sRet(1),V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("LabelTemp","con",V.Local.sSql,True)
+
+F.Intrinsic.Control.If(V.DataTable.LabelTemp.Exists,=,True)
+	F.Intrinsic.Control.If(V.DataTable.LabelTemp.RowCount--,<>,-1)
+		F.Global.BI.GetIDFromName("GCG_4442_Kitting_Labels.lab",V.Local.iRptID)
+		F.Global.BI.GetRunID(V.Local.iBIRunID)
+		F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+		F.Global.BI.StopLogging(V.Local.iLogID)
+		F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"LabelTemp",V.Screen.Form_Paint!ddlPrinter.Text,False)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.Close("LabelTemp")
+F.Intrinsic.Control.EndIf
+
+'keeping account of records in datatable
+Gui.Form_Paint.txtCount.Text(V.DataTable.JobSuffixSeq.RowCount)
+
+F.Intrinsic.Control.CallSub(txtJobSuffixSeq_GotFocus)
+			
+Gui.Form_Paint.cmdPrint.Enabled(True)
+
+gui.Form_Paint.txtJobSuffixSeq.Enabled(True)
+gui.Form_Paint.txtJobSuffixSeq.SetFocus
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtJobSuffixSeq_KeyPressEnter.End
+
+Program.Sub.Form_Paint_UnLoad.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+
+F.ODBC.Connection!Con.Close
+F.ODBC.Connection!ConC.Close
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Form_Paint_UnLoad.End
+
+Program.Sub.cmdPrint_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sScheduleNumber.Declare(String,"")
+V.Local.sMSeq.Declare(String,"")
+V.Local.sPart.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sJob.Declare(String,"")
+V.Local.sSuffix.Declare(String,"")
+V.Local.sSeq.Declare(String,"")
+V.Local.sWorkCenter.Declare(String,"")
+V.Local.iIncrement.Declare(Long,0)
+V.Local.sIncrement.Declare(String,"")
+V.Local.iRptID.Declare(Long,0)
+V.Local.iBIRunID.Declare(Long,0)
+V.Local.iLogID.Declare(Long,0)
+V.Local.sFilter.Declare(String,"")
+V.Local.sDate.Declare(String,"")
+V.Local.iC.Declare(Long,0)
+V.Local.fSched.Declare(Float,0)
+
+F.Intrinsic.String.Format(V.Ambient.Date,"MMDDYY",V.Local.sDate)
+
+Gui.Form_Paint.cmdPrint.Enabled(False)
+
+'looping through jobsuffixseq DT and checking for WC and setting to either PC1, PC2 or PC3 datatable.
+'getting distinct job suffix seq from datatable
+F.Data.DataView.Create("JobSuffixSeq","JobSuffixSeq")
+F.Data.DataView.ToDataTableDistinct("JobSuffixSeq","JobSuffixSeq","DistinctJobSuffSeq","Job*!*Suffix*!*Seq",True)
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.DistinctJobSuffSeq.RowCount--,1)
+	'search for the work center, part and sequence
+    F.Intrinsic.String.Build("SELECT SEQ,PART AS WC FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' and PART in ('*PC1','*PC2','*PC3') ORDER BY SEQ ASC",V.DataTable.DistinctJobSuffSeq(V.Local.i).Job!FieldValTrim,V.DataTable.DistinctJobSuffSeq(V.Local.i).Suffix!FieldValTrim,V.Local.sSQL)
+	F.Data.DataTable.CreateFromSQL("JobOp","Con",V.Local.sSql,True)
+
+	F.Intrinsic.Control.For(V.Local.iC,0,V.DataTable.JobOp.RowCount--,1)
+		V.Local.sWorkCenter.Set(V.DataTable.JobOp(V.Local.iC).WC!FieldValTrim)
+	    F.Intrinsic.Control.SelectCase(V.Local.sWorkCenter.Trim)
+	    	F.Intrinsic.Control.Case("*PC1")
+	    		F.Data.DataTable.AddRow("PC1","Job",V.DataTable.DistinctJobSuffSeq(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.DistinctJobSuffSeq(V.Local.i).Suffix!FieldValTrim,"Seq",V.DataTable.JobOp(V.Local.iC).Seq!FieldValTrim)
+	    		
+	    	F.Intrinsic.Control.Case("*PC2")
+	    		F.Data.DataTable.AddRow("PC2","Job",V.DataTable.DistinctJobSuffSeq(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.DistinctJobSuffSeq(V.Local.i).Suffix!FieldValTrim,"Seq",V.DataTable.JobOp(V.Local.iC).Seq!FieldValTrim)
+	    		
+	    	F.Intrinsic.Control.Case("*PC3")
+	    		F.Data.DataTable.AddRow("PC3","Job",V.DataTable.DistinctJobSuffSeq(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.DistinctJobSuffSeq(V.Local.i).Suffix!FieldValTrim,"Seq",V.DataTable.JobOp(V.Local.iC).Seq!FieldValTrim)
+	    		
+	    F.Intrinsic.Control.EndSelect
+	F.Intrinsic.Control.Next(V.Local.iC)
+	F.Data.DataTable.Close("JobOp")
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Intrinsic.Control.If(V.DataTable.PC1.RowCount--,<>,-1)
+'	F.ODBC.Connection!con.GetID("V_JOB_CT_FLX_SCHD","SCHEDULE",TRUE,V.Local.sScheduleNumber)
+'	F.Intrinsic.String.Build("Select ID, Sequence, F_Numeric From Op_Header where ID = '400817' and Sequence = '0000'","",V.Local.sSql)
+'	F.Data.DataTable.CreateFromSQL("Sched","con",V.Local.sSql,True)
+'	F.Intrinsic.Control.If(V.DataTable.Sched.RowCount--,<>,-1)
+'		F.Intrinsic.Math.Add(V.DataTable.Sched(V.DataTable.Sched.RowCount--).F_Numeric!FieldVal,1,V.Local.fSched)
+'		F.Data.DataTable.SetValue("Sched",V.DataTable.Sched.RowCount--,"F_Numeric",V.Local.fSched)
+'		F.Data.DataTable.SaveToDB("Sched","con","Op_Header","ID*!*Sequence",7)
+'		V.Local.sScheduleNumber.Set(V.Local.fSched)
+'	F.Intrinsic.Control.Else
+'		V.Local.sScheduleNumber.Set("000000")
+'	F.Intrinsic.Control.EndIf
+'	
+'	F.Data.DataTable.Close("Sched")
+	V.Local.sSQL.Set("Select Last_PO_Num From Last_PO Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'")
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sScheduleNumber)
+	F.Intrinsic.String.Left(V.Local.sScheduleNumber,6,V.Local.sScheduleNumber)
+
+	F.Intrinsic.Math.Add(V.Local.sScheduleNumber.Long,1,V.Local.fSched)
+	F.Global.General.SaveOption(400817,"0000","","","","",V.Local.fSched,"")
+	
+	F.Intrinsic.String.Build("Update Op_Header Set F_Numeric = '{0}' Where ID = 400817",V.Local.fSched,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+
+	V.Local.sScheduleNumber.Set(V.Local.fSched)
+	
+	F.Intrinsic.String.Format(V.Local.sScheduleNumber,"000000",V.Local.sScheduleNumber)
+	
+	F.Intrinsic.String.Build("Update Last_PO Set Last_PO_Num = '{0}' + substring(Last_PO_Num,7,1) Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'",V.Local.sScheduleNumber,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	
+	F.Data.DataTable.SetValue("PC1",-1,"SchedNumber",V.Local.sScheduleNumber)
+	
+	V.Local.iIncrement.Set(0)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.PC1.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.iIncrement,1,V.Local.iIncrement)
+        F.Intrinsic.String.Format(V.Local.iIncrement,"000000",V.Local.sIncrement)
+		'search for the material sequence
+	    F.Intrinsic.String.Build("SELECT TOP 1 SEQ, PART FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '995000' and LMO = 'M' ORDER BY SEQ ASC",V.DataTable.PC1(V.Local.i).Job!FieldValTrim,V.DataTable.PC1(V.Local.i).Suffix!FieldValTrim,V.DataTable.PC1(V.Local.i).Seq!FieldValTrim,V.Local.sSQL)
+	    F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sMSeq)
+	    F.Intrinsic.String.Split(V.Local.sMSeq,"*!*",V.Local.sMSeq)
+	    V.Local.sMSeq.RedimPreserve(0,1)
+	    V.Local.sPart.Set(V.Local.sMSeq(1))
+	    V.Local.sMSeq.RedimPreserve(0,0)
+	    F.Intrinsic.String.RPad(V.DataTable.PC1(V.Local.i).Job!FieldValTrim," ",6,V.Local.sJob)
+	    F.Intrinsic.String.RPad(V.DataTable.PC1(V.Local.i).Suffix!FieldValTrim," ",3,V.Local.sSuffix)
+	    F.Intrinsic.String.RPad(V.DataTable.PC1(V.Local.i).Seq!FieldValTrim,"0",6,V.Local.sSeq)
+	    F.Intrinsic.String.RPad(V.Local.sMSeq,"0",6,V.Local.sMSeq) 
+	    V.Local.sWorkCenter.Set("*PC1")
+	    F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+	    
+	    F.Data.DataTable.AddRow("6000","SchedNumber",V.Local.sScheduleNumber,"SchedIncrement",V.Local.sIncrement,"MatWO",V.Local.sJob,"MatSuff",V.Local.sSuffix,"MatSeq",V.Local.sMSeq,"LabWO",V.Local.sJob,"LabSuff",V.Local.sSuffix,"LabSeq",V.Local.sSeq,"LabWOPart",V.Local.sPart,"LabWorkCenter",V.Local.sWorkCenter,"SchedFromDate",V.Local.sDate,"SchedToDate",V.Local.sDate,"SchedFromDueDate",V.Local.sDate,"SchedToDueDate",V.Local.sDate)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.Control.If(V.DataTable.6000.RowCount--,<>,-1)
+		F.Intrinsic.Control.CallSub(6000Sync)
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.PC2.RowCount--,<>,-1)
+'	F.ODBC.Connection!con.GetID("V_JOB_CT_FLX_SCHD","SCHEDULE",TRUE,V.Local.sScheduleNumber)
+'	F.Intrinsic.String.Build("Select ID, Sequence, F_Numeric From Op_Header where ID = '400817' and Sequence = '0000'","",V.Local.sSql)
+'	F.Data.DataTable.CreateFromSQL("Sched","con",V.Local.sSql,True)
+'	F.Intrinsic.Control.If(V.DataTable.Sched.RowCount--,<>,-1)
+'		F.Intrinsic.Math.Add(V.DataTable.Sched(V.DataTable.Sched.RowCount--).F_Numeric!FieldVal,1,V.Local.fSched)
+'		F.Data.DataTable.SetValue("Sched",V.DataTable.Sched.RowCount--,"F_Numeric",V.Local.fSched)
+'		F.Data.DataTable.SaveToDB("Sched","con","Op_Header","ID*!*Sequence",7)
+'		V.Local.sScheduleNumber.Set(V.Local.fSched)
+'	F.Intrinsic.Control.Else
+'		V.Local.sScheduleNumber.Set("000000")
+'	F.Intrinsic.Control.EndIf
+'	
+'	F.Data.DataTable.Close("Sched")
+	V.Local.sSQL.Set("Select Last_PO_Num From Last_PO Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'")
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sScheduleNumber)
+	F.Intrinsic.String.Left(V.Local.sScheduleNumber,6,V.Local.sScheduleNumber)
+
+	F.Intrinsic.Math.Add(V.Local.sScheduleNumber.Long,1,V.Local.fSched)
+	F.Global.General.SaveOption(400817,"0000","","","","",V.Local.fSched,"")
+	
+	F.Intrinsic.String.Build("Update Op_Header Set F_Numeric = '{0}' Where ID = 400817",V.Local.fSched,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+
+	V.Local.sScheduleNumber.Set(V.Local.fSched)
+	
+	F.Intrinsic.String.Format(V.Local.sScheduleNumber,"000000",V.Local.sScheduleNumber)
+	
+	F.Intrinsic.String.Build("Update Last_PO Set Last_PO_Num = '{0}' + substring(Last_PO_Num,7,1) Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'",V.Local.sScheduleNumber,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	
+	F.Data.DataTable.SetValue("PC2",-1,"SchedNumber",V.Local.sScheduleNumber)
+	
+	V.Local.iIncrement.Set(0)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.PC2.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.iIncrement,1,V.Local.iIncrement)
+        F.Intrinsic.String.Format(V.Local.iIncrement,"000000",V.Local.sIncrement)
+		'search for the material sequence
+	    F.Intrinsic.String.Build("SELECT TOP 1 SEQ, PART FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '{2}' and LMO = 'M' ORDER BY SEQ ASC",V.DataTable.PC2(V.Local.i).Job!FieldValTrim,V.DataTable.PC2(V.Local.i).Suffix!FieldValTrim,V.DataTable.PC2(V.Local.i).Seq!FieldValTrim,V.Local.sSQL)
+	    F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sMSeq)
+	    F.Intrinsic.String.Split(V.Local.sMSeq,"*!*",V.Local.sMSeq)
+	    V.Local.sMSeq.RedimPreserve(0,1)
+	    V.Local.sPart.Set(V.Local.sMSeq(1))
+	    V.Local.sMSeq.RedimPreserve(0,0)
+	    F.Intrinsic.String.RPad(V.DataTable.PC2(V.Local.i).Job!FieldValTrim," ",6,V.Local.sJob)
+	    F.Intrinsic.String.RPad(V.DataTable.PC2(V.Local.i).Suffix!FieldValTrim," ",3,V.Local.sSuffix)
+	    F.Intrinsic.String.RPad(V.DataTable.PC2(V.Local.i).Seq!FieldValTrim,"0",6,V.Local.sSeq)
+	    F.Intrinsic.String.RPad(V.Local.sMSeq,"0",6,V.Local.sMSeq)
+	    V.Local.sWorkCenter.Set("*PC2")
+	    F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+	    
+	    F.Data.DataTable.AddRow("6000","SchedNumber",V.Local.sScheduleNumber,"SchedIncrement",V.Local.sIncrement,"MatWO",V.Local.sJob,"MatSuff",V.Local.sSuffix,"MatSeq",V.Local.sMSeq,"LabWO",V.Local.sJob,"LabSuff",V.Local.sSuffix,"LabSeq",V.Local.sSeq,"LabWOPart",V.Local.sPart,"LabWorkCenter",V.Local.sWorkCenter,"SchedFromDate",V.Local.sDate,"SchedToDate",V.Local.sDate,"SchedFromDueDate",V.Local.sDate,"SchedToDueDate",V.Local.sDate)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.Control.If(V.DataTable.6000.RowCount--,<>,-1)
+		F.Intrinsic.Control.CallSub(6000Sync)
+	F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.PC3.RowCount--,<>,-1)
+'	F.ODBC.Connection!con.GetID("V_JOB_CT_FLX_SCHD","SCHEDULE",TRUE,V.Local.sScheduleNumber)
+'	F.Intrinsic.String.Build("Select ID, Sequence, F_Numeric From Op_Header where ID = '400817' and Sequence = '0000'","",V.Local.sSql)
+'	F.Data.DataTable.CreateFromSQL("Sched","con",V.Local.sSql,True)
+'	F.Intrinsic.Control.If(V.DataTable.Sched.RowCount--,<>,-1)
+'		F.Intrinsic.Math.Add(V.DataTable.Sched(V.DataTable.Sched.RowCount--).F_Numeric!FieldVal,1,V.Local.fSched)
+'		F.Data.DataTable.SetValue("Sched",V.DataTable.Sched.RowCount--,"F_Numeric",V.Local.fSched)
+'		F.Data.DataTable.SaveToDB("Sched","con","Op_Header","ID*!*Sequence",7)
+'		V.Local.sScheduleNumber.Set(V.Local.fSched)
+'	F.Intrinsic.Control.Else
+'		V.Local.sScheduleNumber.Set("000000")
+'	F.Intrinsic.Control.EndIf
+'	
+'	F.Data.DataTable.Close("Sched")
+	V.Local.sSQL.Set("Select Last_PO_Num From Last_PO Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'")
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sScheduleNumber)
+	F.Intrinsic.String.Left(V.Local.sScheduleNumber,6,V.Local.sScheduleNumber)
+
+	F.Intrinsic.Math.Add(V.Local.sScheduleNumber.Long,1,V.Local.fSched)
+	F.Global.General.SaveOption(400817,"0000","","","","",V.Local.fSched,"")
+	
+	F.Intrinsic.String.Build("Update Op_Header Set F_Numeric = '{0}' Where ID = 400817",V.Local.fSched,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+
+	V.Local.sScheduleNumber.Set(V.Local.fSched)
+	
+	F.Intrinsic.String.Format(V.Local.sScheduleNumber,"000000",V.Local.sScheduleNumber)
+	
+	F.Intrinsic.String.Build("Update Last_PO Set Last_PO_Num = '{0}' + substring(Last_PO_Num,7,1) Where Ass_Sys = 'SCH' and Ass_Sub_Sys = 'OPT'",V.Local.sScheduleNumber,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	
+	F.Data.DataTable.SetValue("PC3",-1,"SchedNumber",V.Local.sScheduleNumber)
+	
+	V.Local.iIncrement.Set(0)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.PC3.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.iIncrement,1,V.Local.iIncrement)
+        F.Intrinsic.String.Format(V.Local.iIncrement,"000000",V.Local.sIncrement)
+		'search for the material sequence
+	    F.Intrinsic.String.Build("SELECT TOP 1 SEQ, PART FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '{2}' and LMO = 'M' ORDER BY SEQ ASC",V.DataTable.PC3(V.Local.i).Job!FieldValTrim,V.DataTable.PC3(V.Local.i).Suffix!FieldValTrim,V.DataTable.PC3(V.Local.i).Seq!FieldValTrim,V.Local.sSQL)
+	    F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sMSeq)
+	    F.Intrinsic.String.Split(V.Local.sMSeq,"*!*",V.Local.sMSeq)
+	    V.Local.sMSeq.RedimPreserve(0,1)
+	    V.Local.sPart.Set(V.Local.sMSeq(1))
+	    V.Local.sMSeq.RedimPreserve(0,0)
+	    F.Intrinsic.String.RPad(V.DataTable.PC3(V.Local.i).Job!FieldValTrim," ",6,V.Local.sJob)
+	    F.Intrinsic.String.RPad(V.DataTable.PC3(V.Local.i).Suffix!FieldValTrim," ",3,V.Local.sSuffix)
+	    F.Intrinsic.String.RPad(V.DataTable.PC3(V.Local.i).Seq!FieldValTrim,"0",6,V.Local.sSeq)
+	    F.Intrinsic.String.RPad(V.Local.sMSeq,"0",6,V.Local.sMSeq)
+	    V.Local.sWorkCenter.Set("*PC3")
+	    F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+	    
+	    F.Data.DataTable.AddRow("6000","SchedNumber",V.Local.sScheduleNumber,"SchedIncrement",V.Local.sIncrement,"MatWO",V.Local.sJob,"MatSuff",V.Local.sSuffix,"MatSeq",V.Local.sMSeq,"LabWO",V.Local.sJob,"LabSuff",V.Local.sSuffix,"LabSeq",V.Local.sSeq,"LabWOPart",V.Local.sPart,"LabWorkCenter",V.Local.sWorkCenter,"SchedFromDate",V.Local.sDate,"SchedToDate",V.Local.sDate,"SchedFromDueDate",V.Local.sDate,"SchedToDueDate",V.Local.sDate)
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.Control.If(V.DataTable.6000.RowCount--,<>,-1)
+		F.Intrinsic.Control.CallSub(6000Sync)
+	F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.Merge("PC1","SchedNumber",False,4)
+F.Data.DataTable.Merge("PC2","SchedNumber",False,4)
+F.Data.DataTable.Merge("PC3","SchedNumber",False,4)
+
+F.Data.DataView.Create("SchedNumber","SchedNumber")
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.SchedNumber.RowCount--,1)
+	F.Intrinsic.String.Build("Select Distinct Descr From V_WorkGroup_Head a Join V_Job_CT_Flx_Schd b on a.Work_Group = b.Labor_WC Where Schedule = '{0}'",V.DataTable.SchedNumber(V.Local.i).SchedNumber!FieldValTrim,V.Local.sSql)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sWorkCenter)
+	F.Intrinsic.String.Split(V.Local.sWorkCenter,"*!*",V.Local.sWorkCenter)
+	F.Intrinsic.String.Build("Work Center: {0}",V.Local.sWorkCenter.Trim,V.Local.sWorkCenter)
+	F.Intrinsic.String.RPad(V.DataTable.SchedNumber(V.Local.i).SchedNumber!FieldValTrim,"0",9,V.Local.sScheduleNumber)
+	F.Data.DataTable.AddRow("Label","FlexID",V.Local.sScheduleNumber,"OrderNo",V.Local.sWorkCenter)
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Data.DataView.Create("Label","Label")
+F.Data.DataView.ToDataTableDistinct("Label","Label","FlexLabels","FlexID*!*OrderNo",True)
+F.Data.DataView.Close("Label","Label")
+F.Intrinsic.Control.If(V.DataTable.FlexLabels.RowCount--,<>,-1)
+	F.Global.BI.GetIDFromName("GCG_4442_FLEX.lab",V.Local.iRptID)
+	F.Global.BI.GetRunID(V.Local.iBIRunID)
+	F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+	F.Global.BI.StopLogging(V.Local.iLogID)
+	F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"FlexLabels",V.Screen.Form_Paint!ddlPrinter.Text,True)
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.DeleteRow("PC1")
+F.Data.DataTable.DeleteRow("PC2")
+F.Data.DataTable.DeleteRow("PC3")
+F.Data.DataTable.DeleteRow("JobSuffixSeq")
+F.Data.DataTable.DeleteRow("Label")
+F.Data.DataTable.DeleteRow("SchedNumber")
+
+F.Data.DataTable.AcceptChanges("PC1")
+F.Data.DataTable.AcceptChanges("PC2")
+F.Data.DataTable.AcceptChanges("PC3")
+F.Data.DataTable.AcceptChanges("JobSuffixSeq")
+F.Data.DataTable.AcceptChanges("Label")
+F.Data.DataTable.AcceptChanges("SchedNumber")
+
+Gui.Form_Paint.txtCount.Text("0")
+
+Gui.Form_Paint.txtJobSuffixSeq.SetFocus
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdPrint_Click.End
+
+Program.Sub.txtJobSuffixSeq_GotFocus.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+
+Gui.Form_Paint.txtJobSuffixSeq.SelectAll
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.txtJobSuffixSeq_GotFocus.End
+
+Program.Sub.GsGridControl_PaintFlex_RowCellClick.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+V.Local.iX.Declare(Long,0)
+V.Local.iY.Declare(Long,0)
+
+V.Global.iRowIndex.Set(V.Args.RowIndex)
+
+F.Intrinsic.API.GetMousePosition(V.Local.iX,V.Local.iY)
+
+Gui.Form_Paint..ContextMenuShow("DeleteLine",V.Local.iX,V.Local.iY)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.GsGridControl_PaintFlex_RowCellClick.End
+
+Program.Sub.SetProperties.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+
+Gui.Form_Paint.GsGridControl_PaintFlex.AddGridviewFromDatatable("JobSuffixSeq","JobSuffixSeq")
+
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Job","ReadOnly",True)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Job","AllowEdit",False)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Job","HeaderBackColor","Green")
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Job","HeaderForeColor","White")
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Suffix","ReadOnly",True)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Suffix","AllowEdit",False)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Suffix","HeaderBackColor","Green")
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Suffix","HeaderForeColor","White")
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Seq","ReadOnly",True)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Seq","AllowEdit",False)
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Seq","HeaderBackColor","Green")
+Gui.Form_Paint.GsGridControl_PaintFlex.SetColumnProperty("JobSuffixSeq","Seq","HeaderForeColor","White")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.SetProperties.End
+
+Program.Sub.Remove_Line.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.iRptID.Declare(Long,0)
+V.Local.iBIRunID.Declare(Long,0)
+V.Local.iLogID.Declare(Long,0)
+V.Local.sSql.Declare(String,"")
+
+F.Intrinsic.Control.SelectCase(V.Args.ItemName.UCase)
+	F.Intrinsic.Control.Case("ITEM 0")
+		F.Data.DataTable.DeleteRow("JobSuffixSeq",V.Global.iRowIndex)
+		F.Data.DataTable.AcceptChanges("JobSuffixSeq")
+
+		Gui.Form_Paint.txtCount.Text(V.DataTable.JobSuffixSeq.RowCount)
+	
+	F.Intrinsic.Control.Case("ITEM 1")
+		F.Intrinsic.UI.InputBoxExt("Enter a Additonal Scan Count for the selected Record.","",5)
+		
+		F.Intrinsic.Control.If(V.Ambient.AltBoxClick,=,0)
+			F.Intrinsic.Control.For(V.Local.i,1,V.Ambient.AltBoxVal,1)
+				F.Data.DataTable.AddRow("JobSuffixSeq","Job",V.DataTable.JobSuffixSeq(V.Global.iRowIndex).Job!FieldValTrim,"Suffix",V.DataTable.JobSuffixSeq(V.Global.iRowIndex).Suffix!FieldValTrim,"Seq",V.DataTable.JobSuffixSeq(V.Global.iRowIndex).Seq!FieldValTrim)
+				
+				'reprinting label from GCG_4442_Kitting_Labels when the job suffix seq gets scanned
+				F.Intrinsic.String.Build("Select Top 1 * From GCG_4447_Label_Data Where Job = '{0}' and Suffix = '{1}' Order by JSSI Desc",V.DataTable.JobSuffixSeq(V.Global.iRowIndex).Job!FieldValTrim,V.DataTable.JobSuffixSeq(V.Global.iRowIndex).Suffix!FieldValTrim,V.Local.sSql)
+				F.Data.DataTable.CreateFromSQL("LabelTemp","con",V.Local.sSql,True)
+				
+				F.Intrinsic.Control.If(V.DataTable.LabelTemp.Exists,=,True)
+					F.Intrinsic.Control.If(V.DataTable.LabelTemp.RowCount--,<>,-1)
+						F.Global.BI.GetIDFromName("GCG_4442_Kitting_Labels.lab",V.Local.iRptID)
+						F.Global.BI.GetRunID(V.Local.iBIRunID)
+						F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+						F.Global.BI.StopLogging(V.Local.iLogID)
+						F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"LabelTemp",V.Screen.Form_Paint!ddlPrinter.Text,False)
+					F.Intrinsic.Control.EndIf
+					F.Data.DataTable.Close("LabelTemp")
+				F.Intrinsic.Control.EndIf
+				Gui.Form_Paint.txtCount.Text(V.DataTable.JobSuffixSeq.RowCount)
+			F.Intrinsic.Control.Next(V.Local.i)
+		F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Paint_Unload)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Remove_Line.End
