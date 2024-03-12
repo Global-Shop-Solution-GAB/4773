@@ -1,0 +1,124 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.Form_Label..Create
+Gui.Form_Label..Caption("Label Selection")
+Gui.Form_Label..Size(5955,1620)
+Gui.Form_Label..MinX(0)
+Gui.Form_Label..MinY(0)
+Gui.Form_Label..Position(0,0)
+Gui.Form_Label..BackColor(-2147483633)
+Gui.Form_Label..MousePointer(0)
+Gui.Form_Label..Event(UnLoad,Exit)
+Gui.Form_Label.cmd_LabelPrint.Create(Button)
+Gui.Form_Label.cmd_LabelPrint.Size(2415,615)
+Gui.Form_Label.cmd_LabelPrint.Position(225,330)
+Gui.Form_Label.cmd_LabelPrint.Caption("Label Print")
+Gui.Form_Label.cmd_LabelPrint.Event(Click,cmd_LabelPrint_Click)
+Gui.Form_Label.cmd_LabelPaint.Create(Button)
+Gui.Form_Label.cmd_LabelPaint.Size(2415,615)
+Gui.Form_Label.cmd_LabelPaint.Position(3120,330)
+Gui.Form_Label.cmd_LabelPaint.Caption("Paint Line Processing")
+Gui.Form_Label.cmd_LabelPaint.Event(Click,cmd_LabelPaint_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Modified by Sam S to include New GUI hooks 4/2/2021
+
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(15710)
+		V.Passed.000016.Set("Labels")
+		
+	F.Intrinsic.Control.Case(15760)
+		Gui.Form_Label..Show
+	
+	F.Intrinsic.Control.Case(49760)
+		Gui.Form_Label..Show
+	
+	F.Intrinsic.Control.CaseElse
+		F.Intrinsic.Control.CallSub(Exit)
+		
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Label_Selection.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Exit.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Label_Selection.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Exit.End
+
+Program.Sub.cmd_LabelPrint_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String)
+V.Local.sGab.Declare(String)
+V.Local.iPid.Declare(Long)
+
+F.Intrinsic.String.Build("{0}\GCG_4773_Label_Reprint.g2u",V.Caller.GasDir,V.Local.sGab)
+
+F.Global.General.CallASyncGAS(V.Local.sGab,V.Local.iPid)
+
+F.Intrinsic.Control.CallSub(Exit)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Label_Selection.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmd_LabelPrint_Click.End
+
+Program.Sub.cmd_LabelPaint_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String)
+V.Local.sGab.Declare(String)
+V.Local.iPid.Declare(Long)
+
+F.Intrinsic.String.Build("{0}\GCG_4773_Paint_FlexSch_LblRePrint.g2u",V.Caller.GasDir,V.Local.sGab)
+
+F.Global.General.CallASyncGAS(V.Local.sGab,V.Local.iPid)
+
+F.Intrinsic.Control.CallSub(Exit)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Label_Selection.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmd_LabelPaint_Click.End
+
+Program.Sub.Comments.Start
+${$5$}$2.0.0.0$}$2
+${$6$}$sstanka$}$20210402122810852$}$mP+zz5Tw3sT2/nyap+FbWm4triMPqjXDga6LU5yuir43q1hQv8d/xXj9SEQlbZ+4TfzPPBWxemE=
+Program.Sub.Comments.End
