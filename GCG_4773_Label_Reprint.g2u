@@ -1,0 +1,799 @@
+Program.Sub.ScreenSU.Start
+Gui.F_Print..Create
+Gui.F_Print..Caption("Reprint WIP Labels")
+Gui.F_Print..Size(7605,7365)
+Gui.F_Print..MinX(0)
+Gui.F_Print..MinY(0)
+Gui.F_Print..Position(0,0)
+Gui.F_Print..BackColor(-2147483633)
+Gui.F_Print..MaxButton(False)
+Gui.F_Print..MinButton(False)
+Gui.F_Print..MousePointer(0)
+Gui.F_Print..Sizeable(False)
+Gui.F_Print..Event(UnLoad,F_Print_UnLoad)
+Gui.F_Print.lbl1.Create(Label,"Scan Work Order",True,2145,255,0,375,375,True,0,"Arial",8,-2147483633,0)
+Gui.F_Print.txtJob.Create(TextBox,"",True,2130,300,0,375,600,True,0,"Arial",8,-2147483643,1)
+Gui.F_Print.txtJob.Event(KeyPressEnter,txtJob_KeyPressEnter)
+Gui.F_Print.txtJob.Event(GotFocus,txtJob_GotFocus)
+Gui.F_Print.chkFlex.Create(CheckBox)
+Gui.F_Print.chkFlex.Size(1875,360)
+Gui.F_Print.chkFlex.Position(3015,570)
+Gui.F_Print.chkFlex.Caption("Scan Flex Schedule")
+Gui.F_Print.chkFlex.Event(Click,chkFlex_Click)
+Gui.F_Print.txtFlex.Create(TextBox,"",False,2040,300,0,4905,600,False,0,"Arial",8,-2147483643,1)
+Gui.F_Print.txtFlex.Event(KeyPressEnter,txtFlex_KeyPressEnter)
+Gui.F_Print.cmdPrint.Create(Button)
+Gui.F_Print.cmdPrint.Size(855,375)
+Gui.F_Print.cmdPrint.Position(375,6180)
+Gui.F_Print.cmdPrint.Caption("Print")
+Gui.F_Print.cmdPrint.Event(Click,cmdPrint_Click)
+Gui.F_Print.GsGridControl1.Create(GsGridControl)
+Gui.F_Print.GsGridControl1.Size(6585,4695)
+Gui.F_Print.GsGridControl1.Position(390,1245)
+Gui.F_Print.lbl2.Create(Label,"Scan Flex Schedule",False,1935,255,0,4890,375,True,0,"Arial",8,-2147483633,0)
+Gui.F_Print.lbl3.Create(Label,"",True,5760,255,0,1305,6285,True,0,"Arial",8,-2147483633,0)
+Gui.F_Print.cmd1.Create(Button)
+Gui.F_Print.cmd1.Size(420,375)
+Gui.F_Print.cmd1.Position(2550,570)
+Gui.F_Print.cmd1.Caption("^")
+Gui.F_Print.cmd1.Event(Click,cmd1_Click)
+Gui.F_Print.lblNote.Create(Label,"Note: **Print Quantity of 0 will print all labels for select Job",True,4290,255,0,2685,1035,True,0,"Arial",8,-2147483633,0)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.Global.sImagePath.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+
+f.ODBC.Connection!con.OpenConnection(v.Ambient.PDSN,v.Ambient.PUser,v.Ambient.PPass)
+
+'open screen and allow user to scan in label contents.
+'or on carriage return, print label automatically?
+
+f.Intrinsic.Control.If(v.Caller.Hook,=,15710)
+	'rename script button
+	v.Passed.000016.Set("Labels")
+f.Intrinsic.Control.Else
+	'commented out the key press enter event will not work if using autocomplete
+'	V.Local.sSql.Set("Select Job+Suffix as Job, Job+Suffix as Job From V_Job_Header Order By Job")
+'	F.Data.Dictionary.CreateFromSQL("JobSuffix","con",V.Local.sSql)
+'	Gui.F_Print.txtJob.AddAutoCompleteItem("JobSuffix","Dictionary")
+	gui.F_Print..Show
+	gui.F_Print.txtJob.SetFocus
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.F_Print_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.ODBC.Connection!con.Close
+'just end program
+f.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.F_Print_UnLoad.End
+
+Program.Sub.cmdPrint_Click.Start
+F.Intrinsic.Control.SetErrorHandler("F_Print_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.iBIRunID.Declare(Long)
+v.Local.iRptID.Declare(Long)
+v.Local.iLogID.Declare(Long)
+v.Local.sPrinter.Declare(String)
+v.Local.sTemp.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.sSql.Declare(String)
+v.Local.sName.Declare(String)
+v.Local.iSeq.Declare(Long)
+
+gui.F_Print..Enabled(False)
+				
+'populating printdata table based on scanned job suffix
+F.Intrinsic.Control.If(V.Screen.F_Print!chkFlex.Value,<>,1)
+	F.Intrinsic.Control.If(V.DataTable.Job.Exists,=,True)
+		F.Intrinsic.Control.If(V.DataTable.PrintData.Exists,=,False)
+			F.Data.DataTable.CreateFromSQL("PrintData","con","Select * from GCG_4447_LABEL_DATA Where Job = '-11111'",True)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Job.RowCount--,1)
+			F.Intrinsic.Control.If(V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,>,0)
+				F.Intrinsic.String.Build("Select Top {2} * from GCG_4447_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,V.Local.sSql)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.String.Build("Select * from GCG_4447_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+			F.Intrinsic.Control.EndIf
+			F.Data.DataTable.CreateFromSQL("Temp","con",V.Local.sSql,True)
+			F.Intrinsic.Control.If(V.DataTable.Temp.RowCount--,<>,-1)
+				F.Data.DataTable.Merge("Temp","PrintData",False,1)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Control.If(V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,>,0)
+					F.Intrinsic.String.Build("Select Top {2} * from GCG_4442_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,V.Local.sSql)
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Build("Select * from GCG_4442_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+				F.Intrinsic.Control.EndIf
+				F.Data.DataTable.CreateFromSQL("Temp2","con",V.Local.sSql,True)
+				F.Intrinsic.Control.If(V.DataTable.Temp2.RowCount--,<>,-1)
+					F.Data.DataTable.Merge("Temp2","PrintData",False,1)
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Build("Exporting Job {0} Suffix {1}......",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+					F.Intrinsic.UI.InvokeWaitDialog(V.Local.sSql)
+					F.Intrinsic.Control.CallSub(CreateDataTable,"Job",V.DataTable.Job(V.Local.i).Job!FieldValTrim,"Suffix",V.DataTable.Job(V.Local.i).Suffix!FieldValTrim)
+					F.Intrinsic.Control.CallSub(Export)
+					F.Intrinsic.UI.CloseWaitDialog
+					F.Intrinsic.Control.If(V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,>,0)
+						F.Intrinsic.String.Build("Select Top {2} * from GCG_4447_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.DataTable.Job(V.Local.i).Print_Quantity!FieldValLong,V.Local.sSql)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.String.Build("Select * from GCG_4447_LABEL_DATA Where Job = '{0}' and Suffix = '{1}' order by instance",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+					F.Intrinsic.Control.EndIf
+					F.Data.DataTable.CreateFromSQL("Temp3","con",V.Local.sSql,True)
+					F.Intrinsic.Control.If(V.DataTable.Temp3.RowCount--,<>,-1)
+						F.Data.DataTable.Merge("Temp3","PrintData",False,1)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.String.Build("Job {0} Suffix {1} as not been scheduled......",V.DataTable.Job(V.Local.i).Job!FieldValTrim,V.DataTable.Job(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+						F.Intrinsic.UI.Msgbox(V.Local.sSql)
+					F.Intrinsic.Control.EndIf
+					F.Data.DataTable.Close("Temp3")
+				F.Intrinsic.Control.EndIf
+				F.Data.DataTable.Close("Temp2")
+			F.Intrinsic.Control.EndIf
+			F.Data.DataTable.Close("Temp")
+		F.Intrinsic.Control.Next(V.Local.i)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.RemoveColumn("PrintData","PARENT_JOB")
+F.Data.DataTable.RemoveColumn("PrintData","PARENT_Suffix")
+F.Data.DataTable.RemoveColumn("PrintData","Run_Qty")
+F.Data.DataTable.RemoveColumn("PrintData","Order_Line")
+F.Data.DataTable.RemoveColumn("PrintData","Seq")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo")
+F.Data.DataTable.RemoveColumn("PrintData","Material")
+F.Data.DataTable.RemoveColumn("PrintData","Material_Desc")
+F.Data.DataTable.RemoveColumn("PrintData","Material_Qty")
+F.Data.DataTable.RemoveColumn("PrintData","Material_Um")
+F.Data.DataTable.RemoveColumn("PrintData","TotalLength")
+F.Data.DataTable.RemoveColumn("PrintData","TotalWidth")
+F.Data.DataTable.RemoveColumn("PrintData","Graindir")
+F.Data.DataTable.RemoveColumn("PrintData","Ebtopside")
+F.Data.DataTable.RemoveColumn("PrintData","Ebbottomside")
+F.Data.DataTable.RemoveColumn("PrintData","Ebleftside")
+F.Data.DataTable.RemoveColumn("PrintData","Ebrightside")
+F.Data.DataTable.RemoveColumn("PrintData","Seq1")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo1")
+F.Data.DataTable.RemoveColumn("PrintData","Seq2")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo2")
+F.Data.DataTable.RemoveColumn("PrintData","Seq3")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo3")
+F.Data.DataTable.RemoveColumn("PrintData","Seq4")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo4")
+F.Data.DataTable.RemoveColumn("PrintData","Seq5")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo5")
+'F.Data.DataTable.RemoveColumn("PrintData","Wkg5")
+'F.Data.DataTable.RemoveColumn("PrintData","Seq5_Bc")
+F.Data.DataTable.RemoveColumn("PrintData","Seq6")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo6")
+F.Data.DataTable.RemoveColumn("PrintData","Wkg6")
+F.Data.DataTable.RemoveColumn("PrintData","Seq6_Bc")
+F.Data.DataTable.RemoveColumn("PrintData","Seq7")
+F.Data.DataTable.RemoveColumn("PrintData","Lmo7")
+F.Data.DataTable.RemoveColumn("PrintData","Wkg7")
+F.Data.DataTable.RemoveColumn("PrintData","Seq7_Bc")
+F.Data.DataTable.RemoveColumn("PrintData","Image_Path")
+	            
+'For each record in datatable, print WIP label
+F.Intrinsic.Control.If(V.DataTable.PrintData.Exists,=,True)
+	F.Intrinsic.Control.If(V.DataTable.PrintData.RowCount--,<>,-1)
+		F.Global.BI.GetIDFromName("GCG_4442_Kitting_Labels.lab",V.Local.iRptID)
+		F.Global.BI.GetRunID(V.Local.iBIRunID)
+		F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+		F.Global.BI.StopLogging(V.Local.iLogID)
+		F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"PrintData","",True)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.Close("PrintData")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Flex.Exists,=,True)
+	f.Data.DataTable.Close("Flex")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Labels.Exists,=,True)
+	f.Data.DataTable.Close("Labels")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Job.Exists,=,True)
+	F.Data.DataTable.DeleteRow("Job")
+	F.Data.DataTable.AcceptChanges("Job")
+F.Intrinsic.Control.EndIf
+
+Gui.F_Print.txtJob.Text("")
+Gui.F_Print.txtJob.SetFocus
+Gui.F_Print.txtJob.SelectAll
+
+f.Intrinsic.String.Build("Labels Printed for Flex Schedule:{0}",v.Screen.F_Print!txtFlex.Text,v.Local.sTemp)
+gui.F_Print.lbl3.Caption(v.Local.sTemp)
+gui.F_Print.txtFlex.Text("")
+gui.F_Print.txtFlex.SetFocus
+
+gui.F_Print..Enabled(True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("F_Print_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cmdPrint_Click.End
+
+Program.Sub.chkFlex_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdPrint_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+'when this checkbox is checked/unchecked, then enable/disable the txtFlex control and and disable/enable the txtJob control.
+
+f.Intrinsic.Control.If(v.Screen.F_Print!chkFlex.Value,=,1)
+	gui.F_Print.txtFlex.Enabled(True)
+	gui.F_Print.txtFlex.Visible(True)
+	gui.F_Print.lbl2.Visible(True)
+	Gui.F_Print.lblNote.Visible(False)
+	gui.F_Print.txtFlex.SetFocus
+	gui.F_Print.txtJob.Enabled(False)
+f.Intrinsic.Control.Else
+	gui.F_Print.txtFlex.Enabled(False)
+	gui.F_Print.txtFlex.Visible(False)
+	gui.F_Print.lbl2.Visible(false)
+	gui.F_Print.txtJob.Enabled(True)
+	Gui.F_Print.lblNote.Visible(True)
+	gui.F_Print.txtJob.SetFocus
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdPrint_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.chkFlex_Click.End
+
+Program.Sub.txtFlex_KeyPressEnter.Start
+F.Intrinsic.Control.SetErrorHandler("chkFlex_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+v.Local.sSql.Declare(String)
+v.Local.sFlex.Declare(String)
+v.Local.sTemp.Declare(String)
+v.Local.iCount.Declare(Long)
+v.Local.bExists.Declare(Boolean)
+
+'freeze screen while this is running to prevent user error.
+gui.F_Print..Enabled(false)
+
+'close data tables if they are already filled
+f.Intrinsic.Control.If(v.DataTable.Flex.exists,=,True)
+	f.Data.DataTable.Close("Flex")
+f.Intrinsic.Control.EndIf
+
+f.Data.dictionary.exists("Flex",v.Local.bExists)
+f.Intrinsic.Control.If(v.Local.bExists,=,True)
+	f.Data.dictionary.close("Flex")
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.If(v.DataTable.Labels.exists,=,True)
+	f.Data.DataTable.Close("Labels")
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.If(v.DataTable.PrintData.exists,=,True)
+	f.Data.DataTable.Close("PrintData")
+f.Intrinsic.Control.EndIf
+
+'when checkbox enables the txtFlex, user will scan a flex schedule and a carriage return will fire this event
+'get all jobs from flex schedule and print WIP Label all instances of each job-suffx from GCG_4447_Label_Data table. 
+'set focus back to the txtFlex control and clear its contents after data loaded
+
+'Load Label Data for everything then filter.
+'data has to be in the GCG_4447_LABEL_DATA table, this is populated by a custom work order export program in ARC 4447
+f.Data.DataTable.CreateFromSQL("Labels","con","Select * from GCG_4447_LABEL_DATA",true)
+f.Data.DataTable.AddColumn("Labels","Flag","String")
+f.Data.DataTable.AddExpressionColumn("Labels","JOB_SUFFIX","String","[JOB] + [SUFFIX]")
+
+'get
+f.Intrinsic.String.StripCharacters(v.Screen.F_Print!txtFlex.Text,v.Local.sFlex)
+f.Intrinsic.String.Right(v.Local.sFlex,3,v.Local.sTemp)
+f.Intrinsic.String.Left(v.Local.sFlex,6,v.Local.sFlex)
+f.Intrinsic.String.Build("{0}-{1}",v.Local.sFlex,v.Local.sTemp,v.Local.sFlex)
+gui.F_Print.txtFlex.Text(v.Local.sFlex)
+gui.F_Print.lbl3.Caption("")
+f.Intrinsic.String.Build("Select MATL_JOB+MATL_SUFFIX as JOB_SUFFIX,'Y' as Flag from JOB_CT_FLX_SCHD where schedule+'-'+schedule_suffix = '{0}'",v.Local.sFlex.Trim,v.Local.sSql)
+f.Data.DataTable.CreateFromSQL("Flex","con",v.Local.sSql,true)
+gui.F_Print.GsGridControl1.DataSource("Flex")
+
+'create dictionary also for filtering actual Label data
+f.Data.Dictionary.CreateFromSQL("Flex","con",v.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("Flex","")
+f.Data.DataTable.FillFromDictionary("Labels","Flex","JOB_SUFFIX","Flag")
+
+
+'remove records not filled with Y
+f.Data.DataView.Create("Labels","Purge",22,"Flag <> 'Y'","")
+f.Intrinsic.Control.For(v.Local.iCount,v.DataView.Labels!Purge.RowCount--,0,-1)
+	f.Data.DataTable.DeleteRow("Labels",v.DataView.Labels!Purge(v.Local.iCount).DataTableIndex)
+f.Intrinsic.Control.Next(v.Local.iCount)
+
+f.Intrinsic.String.Build("{0}\4773.xml",v.Caller.FilesDir,v.Local.sTemp)
+
+f.Data.DataTable.SaveToXML("Labels",0,True,v.Local.sTemp)
+
+f.Data.DataTable.CreateFromXML("PrintData",v.Local.sTemp,True)
+
+'enable form again
+gui.F_Print..Enabled(True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("chkFlex_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.txtFlex_KeyPressEnter.End
+
+Program.Sub.txtJob_KeyPressEnter.Start
+F.Intrinsic.Control.SetErrorHandler("txtFlex_KeyPressEnter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sRet.Declare(String)
+
+'when value is scanned there is a carriage return that will fire this event
+'each work order that is scanned needs to be added to the datatable --> to grid so when the "Print" button is pressed it will print a WIP label for each scan.
+'set focus back to the txtJOb control and clear its contents.
+F.Intrinsic.Control.If(V.DataTable.Job.Exists,=,False)
+	F.Data.DataTable.CreateFromSQL("Job","con","Select Job, Suffix From JOB_OPERATIONS Where Job = '-1'",True)
+	F.Data.DataTable.AddColumn("Job","Print_Quantity",Long)
+'	Gui.F_Print.GsGridControl1.DataSource("Job")
+	Gui.F_Print.GsGridControl1.AddGridviewFromDatatable("Job","Job")
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Job","ReadOnly",True)
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Job","AllowEdit",False)
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Suffix","ReadOnly",True)
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Suffix","AllowEdit",False)
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Print_Quantity","ReadOnly",False)
+	Gui.F_Print.GsGridControl1.SetColumnProperty("Job","Print_Quantity","AllowEdit",True)
+	Gui.F_Print.GsGridControl1.MainView("Job")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Split(V.Screen.F_Print!txtJob.Text,"$%",V.Local.sRet)
+Gui.F_Print.txtJob.Text(V.Local.sRet(1).Left9)
+F.Intrinsic.String.Left(V.Local.sRet(1),6,V.Local.sRet(0))
+F.Intrinsic.String.Mid(V.Local.sRet(1),7,3,V.Local.sRet(1))
+
+F.Data.DataTable.AddRow("Job","Job",V.Local.sRet(0),"Suffix",V.Local.sRet(1),"PRINT_QUANTITY",0)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtFlex_KeyPressEnter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project:\ GCG_4773_Label_Reprint\.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.txtJob_KeyPressEnter.End
+
+Program.Sub.cmd1_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmd1_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sRet.Declare(String)
+
+F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+F.Intrinsic.UI.SetBrowserColumnResizeMode("3")
+
+'F.Intrinsic.UI.Browser(1000,"",V.Local.sRet)
+F.Intrinsic.UI.CommonBrowser(1000,"",V.Local.sRet)
+F.Intrinsic.UI.SetBrowserColumnResizeMode(1)
+
+F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	F.Intrinsic.String.Build("$%{0}{1}",V.Local.sRet(0),V.Local.sRet(1),V.Local.sRet)
+	Gui.F_Print.txtJob.Text(V.Local.sRet)
+	F.Intrinsic.Control.CallSub(txtJob_KeyPressEnter)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmd1_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Label_Reprint.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmd1_Click.End
+
+Program.Sub.CreateDataTable.Start
+F.Intrinsic.Control.SetErrorHandler("CreateDataTable_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.sFilter.Declare(String)
+v.Local.iCount.Declare(String)
+V.Local.sFile.Declare(String)
+V.Local.sReturn.Declare(String)
+V.Local.bRet.Declare(Boolean,False)
+V.Local.sSql.Declare(String)
+
+f.Intrinsic.Control.CallSub(GetFilePaths)
+
+F.Intrinsic.String.Build("SELECT CAST(0 AS BIT) AS SELECTED, JOB + '-' + SUFFIX AS JOB_SUFFIX, Job, Suffix, RTRIM(PART) AS FULLPART, RTRIM(DESCRIPTION) AS DESCRIPTION, RTRIM(LEFT(PART,17)) AS Part, RTRIM(RIGHT(PART,3)) AS Rev, RTRIM(' ') AS RAWMATERIAL,QTY_ORDER, PRIORITY, CAST('1900-01-01' AS DATE) AS START_DATE, DATE_DUE, RTRIM(' ') AS WC, RTRIM(' ') AS SEQ, CUSTOMER, SALES_ORDER, SALES_ORDER_LINE, PARENT_WO + '-' + PARENT_SUFFIX_PARENT AS PARENT_WO, RTRIM(' ') AS PARENT_PART, RTRIM(' ') AS RMPART, RTRIM(' ') AS RMDESC, CAST(0 AS DOUBLE) AS RMQTY, RTRIM(' ') AS RMUM, CAST(0 AS DOUBLE) AS SWLENGTH, CAST(0 AS DOUBLE) AS SWWIDTH, RTRIM(' ') AS GRAIN, RTRIM(' ') AS EDGETOP, RTRIM(' ') AS EDGEBOT, RTRIM(' ') AS EDGELEFT, RTRIM(' ') AS EDGERIGHT, RTRIM(' ') AS SEQ1, RTRIM(' ') AS LMO1, RTRIM(' ') AS WKG1, RTRIM(' ') AS SEQ1_BC, RTRIM(' ') AS SEQ2, RTRIM(' ') AS LMO2, RTRIM(' ') AS WKG2, RTRIM(' ') AS SEQ2_BC, RTRIM(' ') AS SEQ3, RTRIM(' ') AS LMO3, RTRIM(' ') AS WKG3, RTRIM(' ') AS SEQ3_BC, RTRIM(' ') AS SEQ4, RTRIM(' ') AS LMO4, RTRIM(' ') AS WKG4, RTRIM(' ') AS SEQ4_BC, RTRIM(' ') AS SEQ5, RTRIM(' ') AS LMO5, RTRIM(' ') AS WKG5, RTRIM(' ') AS SEQ5_BC, RTRIM(' ') AS SEQ6, RTRIM(' ') AS LMO6, RTRIM(' ') AS WKG6, RTRIM(' ') AS SEQ6_BC, RTRIM(' ') AS SEQ7, RTRIM(' ') AS LMO7, RTRIM(' ') AS WKG7, RTRIM(' ') AS SEQ7_BC, RTRIM(' ') AS SORT_CODE, CAST(0 AS DOUBLE) AS THICKNESS, UCASE(LEFT(COMMENTS_1,6)) as COMMENTS FROM V_JOB_HEADER WHERE JOB = '{0}' AND SUFFIX = '{1}' AND DATE_CLOSED = '1900-01-01' ORDER BY JOB ASC, SUFFIX ASC",V.Args.Job,V.Args.Suffix,V.Local.sSql)
+F.Intrinsic.Control.If(V.DataTable.ExportDT.Exists,=,True)
+	F.Data.DataTable.Close("ExportDT")
+F.Intrinsic.Control.EndIf
+F.Data.DataTable.CreateFromSQL("ExportDT","Con",V.Local.sSql,True)
+
+'Add Drawing
+f.Intrinsic.Control.If(v.Global.sImagePath.Right1,=,"\")
+'	f.Intrinsic.String.Build("'{0}' + TRIM([FULLPART]) + '.bmp'",v.Global.sImagePath,v.Local.sFilter)
+	f.Intrinsic.String.Build("'{0}' + TRIM(Part) + '_' + TRIM(Rev) + '.bmp'",V.Global.sImagePath,V.Local.sFilter)
+f.Intrinsic.Control.ElseIf(v.Global.sImagePath,=,"")
+	'Image path is empty so leave it blank
+	v.Local.sFilter.Set("")
+f.Intrinsic.Control.Else
+'	f.Intrinsic.String.Build("'{0}' + '\' +TRIM([FULLPART]) + '.bmp'",v.Global.sImagePath,v.Local.sFilter)
+	f.Intrinsic.String.Build("'{0}' + '\' +TRIM(Part) + '_' + TRIM(Rev) + '.bmp'",v.Global.sImagePath,v.Local.sFilter)
+f.Intrinsic.Control.EndIf
+f.Data.DataTable.AddExpressionColumn("ExportDT","IMAGE_PATH","String",v.Local.sFilter)
+
+'Load our Custom Export Table as a Dictionary
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX AS JOB_SUFFIX, 'Y' AS FLAG FROM GCG_4447_LABEL_DATA Where Job = '{0}'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("GCGExported","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("GCGExported","")
+
+'Fill ExportDT with the Flag so we can delete the ones that have a Y flag.
+f.Data.DataTable.AddColumn("ExportDT","Flag","String")
+f.Data.DataTable.FillFromDictionary("ExportDT","GCGExported","Job_Suffix","Flag")
+f.Data.Dictionary.Close("GCGExported")
+
+'We need to fill in Parent Part and Start Date of First Seq, and WorkCenter
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX AS PARENT_WO, RTRIM(PART) AS PART FROM V_JOB_HEADER Where Job = '{0}'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("ParentPart","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("ParentPart","")
+f.Data.DataTable.FillFromDictionary("ExportDT","ParentPart","Parent_WO","Parent_Part")
+f.Data.Dictionary.Close("ParentPart")
+'Get Top level Sequence and their Start Date from UBDetail
+F.Intrinsic.String.Build("SELECT A.JOB + '-' + A.SFX AS JOB_SUFFIX, A.BDATE FROM APSV3_UBDETAIL AS A WHERE A.SEQ = (SELECT MIN(B.SEQ) FROM APSV3_UBDETAIL AS B WHERE B.JOB = A.JOB AND B.SFX = A.SFX ) AND SEQTYPE = '1' and A.Job = '{0}'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("StartDate","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("StartDate","1/1/1900")
+f.Data.DataTable.FillFromDictionary("ExportDT","StartDate","JOB_SUFFIX","START_DATE")
+f.Data.Dictionary.Close("StartDate")
+
+'get raw material for first sequence for job suffix
+f.Data.Dictionary.CreateFromSQL("RawMat","con","Select Job_suffix, RTRIM(part) AS PART from (select job + '-' + suffix as Job_suffix, Min(seq) as seq,(Select part from v_job_operations as op2 where op1.job = op2.job and op1.suffix=op2.suffix and op1.seq = op2.seq) as part from V_JOB_OPERATIONS as op1 where lmo = 'M' and seq < '995000' group by job_suffix order by seq) as B")
+f.ODBC.Connection!Con.OpenLocalRecordsetRO("rst","Select Job_suffix, RTRIM(PART) AS PART from (select job + '-' + suffix as Job_suffix, Min(seq) as seq, (Select part from v_job_operations as op2 where op1.job = op2.job and op1.suffix=op2.suffix and op1.seq = op2.seq) as part from V_JOB_OPERATIONS as op1 where lmo = 'M' and seq < '995000' AND OP1.PART IN (SELECT INV.PART FROM V_INVENTORY_MSTR AS INV WHERE INV.PART = OP1.PART AND INV.CODE_SORT IN ('LAM PANEL','WOOD SHT','METAL SHT','RAW SURF'))  group by job_suffix order by seq) as B")
+f.Intrinsic.Control.DoUntil(v.ODBC.Con!rst.EOF,=,True)
+	F.Intrinsic.Control.Try
+		f.Data.Dictionary.UpdateItem("RawMat",v.ODBC.Con!rst.FieldVal!Job_Suffix,v.ODBC.Con!rst.FieldValTrim!Part)
+	F.Intrinsic.Control.Catch
+		'catching the error if the key doesn't exists so the program doesn't end.
+	F.Intrinsic.Control.EndTry
+	f.ODBC.Con!rst.MoveNext
+f.Intrinsic.Control.Loop
+f.ODBC.Con!rst.Close
+
+'Get Top Level Sequence and its Work Center
+F.Intrinsic.String.Build("SELECT A.JOB + '-' + A.SFX AS JOB_SUFFIX, RTRIM(A.SAR) AS SAR FROM APSV3_UBDETAIL AS A WHERE A.SEQ = (SELECT MIN(B.SEQ) FROM APSV3_UBDETAIL AS B WHERE B.JOB = A.JOB AND B.SFX = A.SFX )  AND SEQTYPE = '1' and A.Job = '{0}'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("WC","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("WC","")
+f.Data.DataTable.FillFromDictionary("ExportDT","WC","JOB_SUFFIX","WC")
+f.Data.Dictionary.Close("WC")
+'Get Top Level Sequence
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX AS JOB_SUFFIX, SEQ FROM V_JOB_OPERATIONS AS A WHERE JOB = '{0}' AND LMO = 'M' AND SEQ = (SELECT MIN(SEQ) FROM V_JOB_OPERATIONS AS OP1 WHERE JOB = A.JOB AND SUFFIX = A.SUFFIX AND LMO = 'M' AND SEQ < '995000')",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("SEQ","Con",V.Local.sSql)
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX AS JOB_SUFFIX, SEQ FROM V_JOB_OPERATIONS AS A WHERE JOB = '{0}' AND LMO = 'M' AND SEQ = (SELECT MIN(SEQ) FROM V_JOB_OPERATIONS AS OP1 WHERE JOB = A.JOB AND SUFFIX = A.SUFFIX AND LMO = 'M' AND SEQ < '995000' AND OP1.PART = (SELECT INV.PART FROM V_INVENTORY_MSTR AS INV WHERE INV.PART = OP1.PART AND INV.CODE_SORT IN ('LAM PANEL','WOOD SHT','METAL SHT','RAW SURF')))",V.Args.Job,V.Local.sSql)
+f.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+f.Intrinsic.Control.DoUntil(v.ODBC.Con!rst.EOF,=,True)
+	f.Data.Dictionary.UpdateItem("SEQ",v.ODBC.Con!rst.FieldVal!Job_Suffix,v.ODBC.Con!rst.FieldVal!SEQ)
+	f.ODBC.Con!rst.MoveNext
+f.Intrinsic.Control.Loop
+f.ODBC.Con!rst.Close
+f.Data.Dictionary.SetDefaultReturn("SEQ","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SEQ","JOB_SUFFIX","SEQ")
+f.Data.Dictionary.Close("SEQ")
+
+'Get Customer Name
+f.Data.Dictionary.CreateFromSQL("Customer","Con","SELECT CUSTOMER, RTRIM(NAME_CUSTOMER)  AS NAME_CUSTOMER FROM V_CUSTOMER_MASTER")
+f.Data.Dictionary.SetDefaultReturn("Customer","")
+f.Data.DataTable.FillFromDictionary("ExportDT","Customer","CUSTOMER")
+f.Data.Dictionary.Close("Customer")
+
+f.Data.dictionary.SetDefaultReturn("RawMat","")
+f.Data.DataTable.FillFromDictionary("ExportDT","RawMat","JOB_SUFFIX","RawMaterial")
+f.Data.Dictionary.Close("RawMat")
+
+'Get Parent Sales Order
+f.Data.Dictionary.CreateFromSQL("SO","Con","SELECT JOB, SALES_ORDER FROM V_JOB_HEADER WHERE SUFFIX = '000'")
+f.Data.Dictionary.SetDefaultReturn("SO","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SO","JOB","Sales_Order")
+f.Data.Dictionary.Close("SO")
+
+'Get Parent Sales Order Line
+f.Data.Dictionary.CreateFromSQL("SOL","Con","SELECT JOB, SALES_ORDER_LINE FROM V_JOB_HEADER WHERE SUFFIX = '000'")
+f.Data.Dictionary.SetDefaultReturn("SOL","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SOL","JOB","Sales_Order_Line")
+f.Data.Dictionary.Close("SOL")
+'Create Expression column for Job-Suffix-Seq for Material Column
+f.Data.DataTable.AddExpressionColumn("ExportDT","Job_Suffix_MSeq","String","[Job_Suffix] + '-' + [Seq]")
+'Get Top Material Part
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX + '-' + SEQ AS JOB_SUFFIX_SEQ, RTRIM(PART) AS PART FROM V_JOB_OPERATIONS WHERE Job = '{0}' AND LMO = 'M' AND SEQ < '995000'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("RMPart","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("RMPart","")
+f.Data.DataTable.FillFromDictionary("ExportDT","RMPart","Job_Suffix_MSeq","RMPart")
+f.Data.Dictionary.Close("RMPart")
+'Get Top Material Description
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX + '-' + SEQ AS JOB_SUFFIX_SEQ, RTRIM(DESCRIPTION) AS DESCRIPTION FROM V_JOB_OPERATIONS WHERE Job = '{0}' AND LMO = 'M' AND SEQ < '995000'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("RMDesc","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("RMDesc","")
+f.Data.DataTable.FillFromDictionary("ExportDT","RMDesc","Job_Suffix_MSeq","RMDesc")
+f.Data.Dictionary.Close("RMDesc")
+'Get Top Material Qty
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX + '-' + SEQ AS JOB_SUFFIX_SEQ, HOURS_ESTIMATED FROM V_JOB_OPERATIONS WHERE Job = '{0}' AND LMO = 'M' AND SEQ < '995000'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("RMQty","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("RMQty",0)
+f.Data.DataTable.FillFromDictionary("ExportDT","RMQty","Job_Suffix_MSeq","RMQty")
+f.Data.Dictionary.Close("RMQty")
+'Get Top Material UM
+F.Intrinsic.String.Build("SELECT JOB + '-' + SUFFIX + '-' + SEQ AS JOB_SUFFIX_SEQ, RTRIM(UM) AS UM FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND LMO = 'M' AND SEQ < '995000'",V.Args.Job,V.Local.sSql)
+f.Data.Dictionary.CreateFromSQL("RMUM","Con",V.Local.sSql)
+f.Data.Dictionary.SetDefaultReturn("RMUM","")
+f.Data.DataTable.FillFromDictionary("ExportDT","RMUM","Job_Suffix_MSeq","RMUM")
+f.Data.Dictionary.Close("RMUM")
+
+'Get info from Solid Works Custom Table
+'Part Length
+f.Data.DataTable.AddExpressionColumn("ExportDT","SWPart","String","Trim([PART]) + TRIM([REV])")
+f.Data.Dictionary.CreateFromSQL("SWLength","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, IF(ISNUMERIC(TOTALLENGTH) > 0 ,CAST(TOTALLENGTH AS DOUBLE),0) AS TOTALLENGTH FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWLength",0)
+f.Data.DataTable.FillFromDictionary("ExportDT","SWLength","SWPart","SWLength")
+f.Data.Dictionary.Close("SWLength")
+'Part Width
+f.Data.Dictionary.CreateFromSQL("SWWidth","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, IF(ISNUMERIC(TOTALWIDTH) > 0 ,CAST(TOTALWIDTH AS DOUBLE),0) AS TOTALWIDTH FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWWidth",0)
+f.Data.DataTable.FillFromDictionary("ExportDT","SWWidth","SWPart","SWWidth")
+f.Data.Dictionary.Close("SWWidth")
+'SW Grain
+f.Data.Dictionary.CreateFromSQL("SWGrain","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, LEFT(RTRIM(GRAINDIR),1) AS GRAIN FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWGrain","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SWGrain","SWPart","Grain")
+f.Data.Dictionary.Close("SWGrain")
+'SW EdgeTop
+f.Data.Dictionary.CreateFromSQL("SWEdgeT","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, RTRIM(EBTOPSIDE) AS SWTOP FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWEdgeT","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SWEdgeT","SWPart","EdgeTop")
+f.Data.Dictionary.Close("SWEdgeT")
+'SW Edge Bottom
+f.Data.Dictionary.CreateFromSQL("SWEdgeB","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, RTRIM(EBBOTTOMSIDE) AS SWBOT FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWEdgeB","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SWEdgeB","SWPart","EdgeBot")
+f.Data.Dictionary.Close("SWEdgeB")
+'SW Edge Left
+f.Data.Dictionary.CreateFromSQL("SWEdgeL","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, RTRIM(EBLEFTSIDE) AS SWLEFT FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWEdgeL","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SWEdgeL","SWPart","EdgeLeft")
+f.Data.Dictionary.Close("SWEdgeL")
+'SW Edge Right
+f.Data.Dictionary.CreateFromSQL("SWEdgeR","Con","SELECT RTRIM(PARTNO) + RTRIM(REVISION) AS PARTNO, RTRIM(EBRIGHTSIDE) AS SWRIGHT FROM GAB_BOM_CUST_FIELDS ")
+f.Data.Dictionary.SetDefaultReturn("SWEdgeR","")
+f.Data.DataTable.FillFromDictionary("ExportDT","SWEdgeR","SWPart","EdgeRight")
+f.Data.Dictionary.Close("SWEdgeR")
+'Create Part_Rev
+f.Data.DataTable.AddExpressionColumn("ExportDT","Part_Rev","String","Part + '_' + Rev")
+
+f.Data.DataTable.AcceptChanges("ExportDT")
+
+'Create DataView
+f.Data.DataView.Create("ExportDT","ExportView")
+
+F.Intrinsic.Control.Label("CreateDataTable_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Label_Reprint.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.CreateDataTable.End
+
+Program.Sub.Export.Start
+F.Intrinsic.Control.SetErrorHandler("Export_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.iCount.Declare(Long)
+v.Local.iQty.Declare(Long)
+v.Local.sInstance.Declare(String)
+v.Local.iQtyZ.Declare(Long)
+v.Local.iSeq.Declare(Long)
+v.Local.sSQL.Declare(String)
+v.Local.iRow.Declare(Long)
+v.Local.sName.Declare(String)
+v.Local.sList.Declare(String)
+v.Local.sDel.Declare(String)
+v.Local.sDel2.Declare(String)
+v.Local.sData.Declare(String)
+v.Local.bExist.Declare(Boolean)
+v.Local.sPWO.Declare(String)
+v.Local.sJSSI.Declare(String)
+
+F.Intrinsic.Control.If(V.DataTable.GCGLabel.Exists,=,True)
+	F.Data.DataTable.Close("GCGLabel")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.SNExport.Exists,=,True)
+	F.Data.DataTable.Close("SNExport")
+F.Intrinsic.Control.EndIf
+f.Data.DataTable.CreateFromSQL("GCGLabel","Con","SELECT * FROM GCG_4447_LABEL_DATA WHERE JOB = '666666666666666666'",True)
+f.Data.DataTable.CreateFromSQL("SNExport","Con","SELECT CAST(0 AS BIT) AS SELECTED, JOB + '-' + SUFFIX AS JOB_SUFFIX, Job, Suffix, RTRIM(PART) AS FULLPART, RTRIM(DESCRIPTION) AS DESCRIPTION, RTRIM(LEFT(PART,17)) AS Part, RTRIM(RIGHT(PART,3)) AS Rev, RTRIM(' ') AS RAWMATERIAL,QTY_ORDER, PRIORITY, CAST('1900-01-01' AS DATE) AS START_DATE, DATE_DUE, RTRIM(' ') AS WC, RTRIM(' ') AS SEQ, CUSTOMER, SALES_ORDER, SALES_ORDER_LINE, PARENT_WO + '-' + PARENT_SUFFIX_PARENT AS PARENT_WO, RTRIM(' ') AS PARENT_PART, RTRIM(' ') AS RMPART, RTRIM(' ') AS RMDESC, CAST(0 AS DOUBLE) AS RMQTY, RTRIM(' ') AS RMUM, CAST(0 AS DOUBLE) AS SWLENGTH, CAST(0 AS DOUBLE) AS SWWIDTH, RTRIM(' ') AS GRAIN, RTRIM(' ') AS EDGETOP, RTRIM(' ') AS EDGEBOT, RTRIM(' ') AS EDGELEFT, RTRIM(' ') AS EDGERIGHT, RTRIM(' ') AS SEQ1, RTRIM(' ') AS LMO1, RTRIM(' ') AS WKG1, RTRIM(' ') AS SEQ1_BC, RTRIM(' ') AS SEQ2, RTRIM(' ') AS LMO2, RTRIM(' ') AS WKG2, RTRIM(' ') AS SEQ2_BC, RTRIM(' ') AS SEQ3, RTRIM(' ') AS LMO3, RTRIM(' ') AS WKG3, RTRIM(' ') AS SEQ3_BC, RTRIM(' ') AS SEQ4, RTRIM(' ') AS LMO4, RTRIM(' ') AS WKG4, RTRIM(' ') AS SEQ4_BC, RTRIM(' ') AS SEQ5, RTRIM(' ') AS LMO5, RTRIM(' ') AS WKG5, RTRIM(' ') AS SEQ5_BC, RTRIM(' ') AS SEQ6, RTRIM(' ') AS LMO6, RTRIM(' ') AS WKG6, RTRIM(' ') AS SEQ6_BC, RTRIM(' ') AS SEQ7, RTRIM(' ') AS LMO7, RTRIM(' ') AS WKG7, RTRIM(' ') AS SEQ7_BC, RTRIM(' ') AS SORT_CODE, CAST(0 AS DOUBLE) AS THICKNESS FROM V_JOB_HEADER WHERE DATE_CLOSED = '1900-01-01' AND JOB = 'ASDFASDFASDFASDF' ORDER BY JOB ASC, SUFFIX ASC",True)
+f.Data.DataTable.DeleteRow("SNExport")
+f.Data.DataTable.AcceptChanges("SNExport")
+f.Data.DataTable.AddColumn("SNExport","Part_Rev","String")
+f.Data.DataTable.AddColumn("SNExport","SN84","String")
+f.Data.DataTable.AddColumn("SNExport","One","String")
+f.Data.DataTable.AddColumn("SNExport","Empty","String")
+f.Data.DataTable.AddColumn("SNExport","Instance","String")
+f.Data.DataTable.AddExpressionColumn("SNExport","Job_Suffix_Seq_Inst","String","[JOB] + '_' + [SUFFIX] + '_' + [SEQ] + '_' + [INSTANCE]")
+f.Intrinsic.Control.For(v.Local.iCount,0,v.DataView.ExportDT!ExportView.RowCount--,1)
+	'We need to first create a loop for the amount of quanties we have for each part.
+	f.Intrinsic.Control.For(v.Local.iQty,1,v.DataView.ExportDT!ExportView(v.Local.iCount).QTY_ORDER!FieldValLong,1)
+		f.Intrinsic.Math.Sub(v.Local.iQty,1,v.Local.iQtyZ)
+		'we need to add a Row to the new DT and fill in the data
+		f.Intrinsic.String.Build("00{0}",v.Local.iQtyZ,v.Local.sInstance)
+		v.Local.sPWO.Redim(0,0)
+		f.Intrinsic.String.Split(v.DataView.ExportDT!ExportView(v.Local.iCount).Parent_WO!FieldVal,"-",v.Local.sPWO)
+		v.Local.sPWO.RedimPreserve(0,1)
+		'Create Job_Suffix_Seq_Instance
+		v.Local.sJSSI.Set("")
+		f.Intrinsic.String.Build("{0}_{1}_{2}_{3}",v.DataView.ExportDT!ExportView(v.Local.iCount).JOB!FieldValTrim,v.DataView.ExportDT!ExportView(v.Local.iCount).SUFFIX!FieldValTrim,v.DataView.ExportDT!ExportView(v.Local.iCount).SEQ!FieldValTrim,v.Local.sInstance.Right2,v.Local.sJSSI)
+		f.Data.DataTable.AddRow("GCGLabel","JOB",v.DataView.ExportDT!ExportView(v.Local.iCount).JOB!FieldValTrim,"SUFFIX",v.DataView.ExportDT!ExportView(v.Local.iCount).SUFFIX!FieldValTrim,"INSTANCE",v.Local.sInstance.Right2,"PART",v.DataView.ExportDT!ExportView(v.Local.iCount).FULLPART!FieldValTrim,"PARENT_JOB",v.Local.sPWO(0).Trim,"PARENT_SUFFIX",v.Local.sPWO(1).Trim,"PARENT_PART",v.DataView.ExportDT!ExportView(v.Local.iCount).Parent_Part!FieldValTrim,"DESCRIPTION",v.DataView.ExportDT!ExportView(v.Local.iCount).DESCRIPTION!FieldValTrim,"RUN_QTY",1,"TOTAL_WO_QTY",v.DataView.ExportDT!ExportView(v.Local.iCount).Qty_Order!FieldVal,"ORDER_NO",v.DataView.ExportDT!ExportView(v.Local.iCount).SALES_ORDER!FieldValTrim,"ORDER_LINE",v.DataView.ExportDT!ExportView(v.Local.iCount).SALES_ORDER_LINE!FieldValTrim,"SEQ",v.DataView.ExportDT!ExportView(v.Local.iCount).SEQ!FieldValTrim,"LMO","M","MATERIAL",v.DataView.ExportDT!ExportView(v.Local.iCount).RMPart!FieldValTrim,"MATERIAL_DESC",v.DataView.ExportDT!ExportView(v.Local.iCount).RMDESC!FieldValTrim,"MATERIAL_QTY",v.DataView.ExportDT!ExportView(v.Local.iCount).RMQTY!FieldValTrim,"MATERIAL_UM",v.DataView.ExportDT!ExportView(v.Local.iCount).RMUM!FieldValTrim,"TOTALLENGTH",v.DataView.ExportDT!ExportView(v.Local.iCount).SWLENGTH!FieldValTrim,"TOTALWIDTH",v.DataView.ExportDT!ExportView(v.Local.iCount).SWWIDTH!FieldValTrim,"GRAINDIR",v.DataView.ExportDT!ExportView(v.Local.iCount).GRAIN!FieldValTrim,"EBTOPSIDE",v.DataView.ExportDT!ExportView(v.Local.iCount).EDGETOP!FieldValTrim,"EBBOTTOMSIDE",v.DataView.ExportDT!ExportView(v.Local.iCount).EDGEBOT!FieldValTrim,"EBLEFTSIDE",v.DataView.ExportDT!ExportView(v.Local.iCount).EDGELEFT!FieldValTrim,"EBRIGHTSIDE",v.DataView.ExportDT!ExportView(v.Local.iCount).EDGERIGHT!FieldValTrim,"IMAGE_PATH",v.DataView.ExportDT!ExportView(v.Local.iCount).IMAGE_PATH!FieldValTrim,"JSSI",v.Local.sJSSI)
+		'we need to get the Row we are on and do another loop for each Labor Sequence
+		'excluding workcenters *PC1,2,3. SFF 12/14/2017
+		v.Local.iRow.Set(v.DataTable.GCGLabel.RowCount--)
+		v.Local.iSeq.Set(1)
+		F.Intrinsic.String.Build("SELECT TOP 7 SEQ, LMO, RTRIM(PART) AS PART, '$%' + JOB + SUFFIX + SEQ AS SEQ_BC FROM V_JOB_OPERATIONS WHERE LMO = 'L' AND SEQ < '900000' AND JOB = '{0}' AND SUFFIX = '{1}' and PART NOT IN ('*PC1','*PC2','*PC3')  ORDER BY SEQ ASC",v.DataTable.GCGLabel(v.Local.iRow).JOB!FieldValTrim,v.DataTable.GCGLabel(v.Local.iRow).SUFFIX!FieldValTrim,v.Local.sSQL)
+		f.ODBC.Connection!Con.OpenLocalRecordSetRO("rstSeq",v.Local.sSQL)
+		f.Intrinsic.Control.DoUntil(v.ODBC.Con!rstSeq.EOF,=,True,"OR",v.Local.iSeq,>,7)
+			f.Intrinsic.String.Build("SEQ{0}*!*LMO{0}*!*WKG{0}*!*SEQ{0}_BC",V.Local.iSeq,v.Local.sName)
+			f.Intrinsic.String.Split(v.Local.sName,"*!*",v.Local.sName)
+			f.Data.DataTable.SetValue("GCGLabel",v.Local.iRow,v.Local.sName(0),v.ODBC.Con!rstSeq.FieldValTrim!SEQ,v.Local.sName(1),v.ODBC.Con!rstSeq.FieldValTrim!LMO,v.Local.sName(2),v.ODBC.Con!rstSeq.FieldValTrim!PART,v.Local.sName(3),v.ODBC.Con!rstSeq.FieldValTrim!SEQ_BC)
+			f.Intrinsic.Math.Add(v.Local.iSeq,1,v.Local.iSeq)
+			f.ODBC.Con!rstSeq.MoveNext
+		f.Intrinsic.Control.Loop
+		f.ODBC.Con!rstSeq.Close
+	f.Intrinsic.Control.Next(v.Local.iQty)
+f.Intrinsic.Control.Next(v.Local.iCount)
+
+'Save to DB
+f.Data.DataTable.SaveToDB("GCGLabel","Con","GCG_4447_LABEL_DATA","JOB*!*SUFFIX*!*INSTANCE",256)
+f.Data.DataTable.Close("GCGLabel")
+
+F.Intrinsic.Control.Label("Export_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Label_Reprint.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Export.End
+
+Program.Sub.GetFilePaths.Start
+F.Intrinsic.Control.SetErrorHandler("GetFilePaths_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.sFile.Declare(String)
+v.Local.bExist.Declare(Boolean)
+v.Local.iCount.Declare(Long)
+v.Local.sRet.Declare(String)
+V.Local.sSql.Declare(String)
+
+''We need to read in Image Paths.
+''We have them stored in SNLIC.dat in Global\Files path.
+'f.Intrinsic.String.Build("{0}\SNLIC.dat",v.Caller.FilesDir,v.Local.sFile)
+'f.Intrinsic.File.Exists(v.Local.sFile,v.Local.bExist)
+'f.Intrinsic.Control.If(v.Local.bExist,=,False)
+'	'File doesn't exist so we need to tell them to create it and end the program.
+'	f.Intrinsic.UI.Msgbox("File SNLIC.dat in Global\Files directory does not exist. Pleace create it and add IMPORT:: and IMAGE:: paths to it.","Attenditon!")
+'f.Intrinsic.Control.EndIf
+''File exists so we need to read it set the file paths.
+'f.Intrinsic.File.File2String(v.Local.sFile,v.Local.sFile)
+'f.Intrinsic.String.Split(v.Local.sFile,v.Ambient.NewLine,v.Local.sFile)
+'f.Intrinsic.Control.For(v.Local.iCount,0,v.Local.sFile.UBound,1)
+'	f.Intrinsic.Control.SelectCase(v.Local.sFile(v.Local.iCount).Left5)
+'		f.Intrinsic.Control.Case("IMAGE")
+'			'We have the Image location, split it and get the path.
+'			f.Intrinsic.String.Split(v.Local.sFile(v.Local.iCount),"::",v.Local.sRet)
+'			v.Local.sRet.RedimPreserve(0,1)
+'			v.Global.sImagePath.Set(v.Local.sRet(1).Trim)
+'			v.Global.sImagePath.Set(v.Local.sRet(1).Trim)
+'			v.Local.sRet.Redim(0,0)
+'	f.Intrinsic.Control.EndSelect
+'f.Intrinsic.Control.Next(v.Local.iCount)
+
+F.Intrinsic.String.Build("Select Image_Dir From GCG_4447_Sigma_Dir Where Company = '{0}'",V.Caller.CompanyCode,V.Local.sSql)
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet.Length,>,0)
+	v.Global.sImagePath.Set(V.Local.sRet)
+F.Intrinsic.Control.Else
+	F.Intrinsic.UI.Msgbox("Go to Shop Floor Control > File > SigmaNest File Maintenance to set up Directories","Warning")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GetFilePaths_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Label_Reprint.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.GetFilePaths.End
+
+Program.Sub.txtJob_GotFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txtJob_GotFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.F_Print.txtJob.SelectAll
+
+F.Intrinsic.Control.Label("txtJob_GotFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Label_Reprint.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(F_Print_UnLoad)
+F.Intrinsic.Control.EndIf
+Program.Sub.txtJob_GotFocus.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$SUPERVSR$}$10/2/2017 6:41:29 AM$}$True
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$This will be able to print labels from different workstations based on what is scanned. 
+
+some workcenters will be scanning a work order# from a traveller or cut list, others will be scanning a qr code label containing all the label contents.
+Program.Sub.Comments.End
