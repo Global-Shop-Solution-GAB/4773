@@ -1,0 +1,134 @@
+Program.Sub.ScreenSU.Start
+Gui.Form_Select_Part..Create
+Gui.Form_Select_Part..Caption("Select Part -> Print Label")
+Gui.Form_Select_Part..Size(5400,2280)
+Gui.Form_Select_Part..MinX(0)
+Gui.Form_Select_Part..MinY(0)
+Gui.Form_Select_Part..Position(0,0)
+Gui.Form_Select_Part..BackColor(-2147483633)
+Gui.Form_Select_Part..MaxButton(False)
+Gui.Form_Select_Part..MinButton(False)
+Gui.Form_Select_Part..MousePointer(0)
+Gui.Form_Select_Part..Sizeable(False)
+Gui.Form_Select_Part..Event(UnLoad,Form_Select_Part_UnLoad)
+Gui.Form_Select_Part.lblPart.Create(Label,"Part",True,1935,375,0,240,150,True,0,"Arial",14,-2147483633,0)
+Gui.Form_Select_Part.txtPart.Create(TextBox,"",True,3975,435,0,255,465,True,0,"Arial",14,-2147483643,1)
+Gui.Form_Select_Part.cmdPrint.Create(Button)
+Gui.Form_Select_Part.cmdPrint.Size(990,525)
+Gui.Form_Select_Part.cmdPrint.Position(270,990)
+Gui.Form_Select_Part.cmdPrint.Caption("Print")
+Gui.Form_Select_Part.cmdPrint.FontSize(14)
+Gui.Form_Select_Part.cmdPrint.Event(Click,cmdPrint_Click)
+Gui.Form_Select_Part.cmdBrowseParts.Create(Button)
+Gui.Form_Select_Part.cmdBrowseParts.Size(435,375)
+Gui.Form_Select_Part.cmdBrowseParts.Position(4440,480)
+Gui.Form_Select_Part.cmdBrowseParts.Caption("^")
+Gui.Form_Select_Part.cmdBrowseParts.Event(Click,cmdBrowseParts_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+v.Global.sPart.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Sub_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+'coded by SFF 1/11/2018
+'this allowws to browse for a part and print a label
+f.ODBC.Connection!conX.openconnection(v.Ambient.PDSN,v.Ambient.PUser,v.Ambient.PPass,72000)
+gui.Form_Select_Part..Show
+gui.Form_Select_Part.txtPart.SetFocus
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Sub_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: Project",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Main.End
+
+Program.Sub.Form_Select_Part_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("Sub_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+	f.Intrinsic.Control.End
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Sub_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: Project",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Form_Select_Part_UnLoad.End
+
+Program.Sub.cmdBrowseParts_Click.Start
+F.Intrinsic.Control.SetErrorHandler("Sub_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sRet.Declare(String)
+v.Local.spart.Declare(String)
+
+'part/rev browser
+Function.Intrinsic.UI.Browser(100, "", Variable.Local.sRet)
+
+F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+	f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+	f.Intrinsic.String.RPad(v.Local.sRet(0)," ",17,v.Global.sPart)
+	f.Intrinsic.String.Build("{0}{1}",v.Global.sPart,v.Local.sRet(1).trim,v.Global.sPart)
+	gui.Form_Select_Part.txtPart.Text(v.Global.sPart)
+	
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Sub_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: Project",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.cmdBrowseParts_Click.End
+
+Program.Sub.cmdPrint_Click.Start
+F.Intrinsic.Control.SetErrorHandler("Sub_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.sSql.Declare(String)
+v.Local.iBIRunID.Declare(Long)
+v.Local.iLogID.Declare(Long)
+v.Local.iRptID.Declare(Long)
+
+
+
+'get info for label.
+f.Intrinsic.String.Build("Select '{0}',PART,DESCRIPTION as DESCR,DESCRIPTION_2 as ALT_DESC_1 from v_INVENTORY_ALL where PART = '{1}'",v.Caller.User,v.Global.sPart,v.Local.sSql)
+f.data.DataTable.CreateFromSQL("LabelTemp","conX",v.Local.sSql)
+
+'get report ID and print label
+F.Intrinsic.Control.If(V.DataTable.LabelTemp.Exists,=,True)
+	F.Intrinsic.Control.If(V.DataTable.LabelTemp.RowCount--,<>,-1)
+		F.Global.BI.GetIDFromName("GCG_4773_QC_INVENTORY.lab",V.Local.iRptID)
+		F.Global.BI.GetRunID(V.Local.iBIRunID)
+		F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+		F.Global.BI.StopLogging(V.Local.iLogID)
+		F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"LabelTemp","",True)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.Close("LabelTemp")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Sub_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: Project",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdPrint_Click.End
