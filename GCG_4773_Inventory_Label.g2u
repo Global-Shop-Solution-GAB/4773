@@ -1,0 +1,108 @@
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+'this will contain data that is from BDF and Selected data and will load to a data table.
+v.Global.sData.Declare(String)
+v.Global.sPart.Declare(String)
+v.Global.sJob.Declare(String)
+v.Global.SSuf.Declare(String)
+v.Global.sUserID.Declare(String)
+
+'this works from Hook 32412
+'prints an inventory label after post-signoff of a Task from Gui.
+'It will prompt for the printer and quantity.
+
+f.ODBC.Connection!conX.OpenConnection(v.Ambient.PDSN,v.Ambient.PUser,v.Ambient.PPass)
+
+f.Intrinsic.Control.If(v.Caller.Hook,=,32412)
+	f.Intrinsic.Control.CallSub(LoadBDF)
+	f.Intrinsic.Control.CallSub(PrintLabel)
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Inventory_Label.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.LoadBDF.Start
+F.Intrinsic.Control.SetErrorHandler("LoadBDF_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.local.sRow.Declare(String)
+v.Local.i.Declare(Long)
+v.Local.iRow.Declare(Long)
+
+f.Intrinsic.Math.Sub(v.Passed.SELECTED-ROW,1,v.Local.iRow)
+
+f.Intrinsic.BDF.Load("AUX001","AUX001")
+f.Intrinsic.BDF.ReadRow("AUX001",v.local.iRow,v.Local.sRow)
+f.Intrinsic.String.Split(v.Local.sRow,"|~|",v.Local.sRow)
+'Start building string from selected row in BDF
+'set part for query in PrintLabel
+v.Global.sJob.Set(v.Local.sRow(0).Trim)
+v.Global.SSuf.Set(v.Local.sRow(1).Trim)
+v.Global.sPart.Set(v.Local.sRow(4).Trim)
+v.Global.sUserID.Set(v.Local.sRow(8).Trim)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LoadBDF_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Inventory_Label.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.LoadBDF.End
+
+Program.Sub.PrintLabel.Start
+F.Intrinsic.Control.SetErrorHandler("PrintLabel_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.sSql.Declare(string)
+V.Local.iBIRunID.Declare(Long)
+V.Local.iRptID.Declare(Long)
+V.Local.iLogID.Declare(Long)
+
+'Get Description, Alt Description 1 from Inventory Master.
+f.Intrinsic.String.Build("select PART,'{1}' as WO,'{2}' as WO_SUFFIX, '{3}' as USER_ID, DESCRIPTION as DESCR,DESCRIPTION_2 as ALT_DESC_1 from v_Inventory_All where PART = '{0}'",v.Global.sPart,v.Global.sJob,v.Global.SSuf,v.Global.sUserID,v.Local.sSql)
+f.Data.DataTable.CreateFromSQL("InvLabel","conX",v.Local.sSql)
+
+F.Intrinsic.Control.If(V.DataTable.InvLabel.Exists,=,True)
+	F.Intrinsic.Control.If(V.DataTable.InvLabel.RowCount--,<>,-1)
+		F.Global.BI.GetIDFromName("GCG_4773_QC_INVENTORY.lab",V.Local.iRptID)
+		F.Global.BI.GetRunID(V.Local.iBIRunID)
+		F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+		F.Global.BI.StopLogging(V.Local.iLogID)
+		F.Global.BI.PrintCodesoftLabelFromDataTable(V.Local.iBIRunID,V.Local.iLogID,"InvLabel","",True)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.Close("InvLabel")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("PrintLabel_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4773_Inventory_Label.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.PrintLabel.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$SUPERVSR$}$9/27/2017 3:31:42 PM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$Project is for printing an inventory label on post signoff of a TASK from GUI.
+Program.Sub.Comments.End
