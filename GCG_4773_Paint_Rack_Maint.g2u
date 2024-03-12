@@ -1,0 +1,501 @@
+Program.Sub.ScreenSU.Start
+Gui.Form_Racks..Create
+Gui.Form_Racks..Caption("Rack Maintenace")
+Gui.Form_Racks..Size(7575,10590)
+Gui.Form_Racks..MinX(0)
+Gui.Form_Racks..MinY(0)
+Gui.Form_Racks..Position(0,0)
+Gui.Form_Racks..BackColor(-2147483633)
+Gui.Form_Racks..MousePointer(0)
+Gui.Form_Racks..Event(UnLoad,Form_Racks_UnLoad)
+Gui.Form_Racks.tabMaint.Create(Tab)
+Gui.Form_Racks.tabMaint.Size(7320,10110)
+Gui.Form_Racks.tabMaint.Position(75,120)
+Gui.Form_Racks.tabMaint.Event(Click,tabMaint_Click)
+Gui.Form_Racks.tabMaint.Tabs(2)
+Gui.Form_Racks.tabMaint.SetTab(0)
+Gui.Form_Racks.tabMaint.Caption("Rack Maint")
+Gui.Form_Racks.tabMaint.SetTab(1)
+Gui.Form_Racks.tabMaint.Caption("Proc Type Maint")
+Gui.Form_Racks.lblRack.Create(Label,"Enter Rack Name",True,2535,255,0,105,195,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Racks.lblRack.Parent("tabMaint",0)
+Gui.Form_Racks.txtRack.Create(TextBox,"",True,3180,300,0,105,420,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Racks.txtRack.MaxLength(15)
+Gui.Form_Racks.txtRack.Parent("tabMaint",0)
+Gui.Form_Racks.txtRack.TabStop(True)
+Gui.Form_Racks.txtRack.TabIndex(1)
+Gui.Form_Racks.cmdAddRack.Create(Button)
+Gui.Form_Racks.cmdAddRack.Size(855,375)
+Gui.Form_Racks.cmdAddRack.Position(3405,390)
+Gui.Form_Racks.cmdAddRack.Caption("Add")
+Gui.Form_Racks.cmdAddRack.Event(Click,cmdAddRack_Click)
+Gui.Form_Racks.cmdAddRack.Parent("tabMaint",0)
+Gui.Form_Racks.cmdAddRack.TabStop(True)
+Gui.Form_Racks.cmdAddRack.TabIndex(2)
+Gui.Form_Racks.GsGridControlRacks.Create(GsGridControl)
+Gui.Form_Racks.GsGridControlRacks.Size(6960,8730)
+Gui.Form_Racks.GsGridControlRacks.Position(105,870)
+Gui.Form_Racks.GsGridControlRacks.Event(RowCellClick,GsGridControlRacks_RowCellClick)
+Gui.Form_Racks.GsGridControlRacks.Parent("tabMaint",0)
+Gui.Form_Racks.GsGridControlRacks.TabStop(True)
+Gui.Form_Racks.GsGridControlRacks.TabIndex(3)
+Gui.Form_Racks.lblProcType.Create(Label,"Enter Process Type",True,1935,255,0,105,195,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Racks.lblProcType.Parent("tabMaint",1)
+Gui.Form_Racks.txtProcType.Create(TextBox,"",True,1575,300,0,105,420,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Racks.txtProcType.Parent("tabMaint",1)
+Gui.Form_Racks.txtProcType.TabStop(True)
+Gui.Form_Racks.txtProcType.TabIndex(4)
+Gui.Form_Racks.GsGridControlProcType.Create(GsGridControl)
+Gui.Form_Racks.GsGridControlProcType.Size(6960,8730)
+Gui.Form_Racks.GsGridControlProcType.Position(105,870)
+Gui.Form_Racks.GsGridControlProcType.Parent("tabMaint",1)
+Gui.Form_Racks.GsGridControlProcType.Event(RowCellClick,GsGridControlProcType_RowCellClick)
+Gui.Form_Racks.GsGridControlProcType.TabStop(True)
+Gui.Form_Racks.GsGridControlProcType.TabIndex(7)
+Gui.Form_Racks.cmdProcTypeAdd.Create(Button)
+Gui.Form_Racks.cmdProcTypeAdd.Size(855,375)
+Gui.Form_Racks.cmdProcTypeAdd.Position(6210,390)
+Gui.Form_Racks.cmdProcTypeAdd.Parent("tabMaint",1)
+Gui.Form_Racks.cmdProcTypeAdd.Caption("Add")
+Gui.Form_Racks.cmdProcTypeAdd.Event(Click,cmdProcTypeAdd_Click)
+Gui.Form_Racks.cmdProcTypeAdd.TabStop(True)
+Gui.Form_Racks.cmdProcTypeAdd.TabIndex(6)
+Gui.Form_Racks.lblProcDesc.Create(Label,"Description",True,1935,255,0,2205,195,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Racks.lblProcDesc.Parent("tabMaint",1)
+Gui.Form_Racks.txtProcDesc.Create(TextBox,"",True,3900,300,0,2205,420,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Racks.txtProcDesc.Parent("tabMaint",1)
+Gui.Form_Racks.txtProcDesc.MaxLength(30)
+Gui.Form_Racks.txtProcDesc.TabStop(True)
+Gui.Form_Racks.txtProcDesc.TabIndex(5)
+Gui.Form_Racks.cmdProcType.Create(Button)
+Gui.Form_Racks.cmdProcType.Size(405,375)
+Gui.Form_Racks.cmdProcType.Position(1740,390)
+Gui.Form_Racks.cmdProcType.Parent("tabMaint",1)
+Gui.Form_Racks.cmdProcType.Caption("^")
+Gui.Form_Racks.cmdProcType.Event(Click,cmdProcType_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	'coded by RLK
+	'This maintenance program is to allow the user to be able to maintain(add/Delete) Racks that will be use for hanging parts for Paint.
+	
+	'calling sub to set anchors
+	F.Intrinsic.Control.CallSub(Set_Anchors)
+	'calling sub to get data
+	F.Intrinsic.Control.CallSub(Get_Data)
+	'calling sub to set properties on the grid
+	F.Intrinsic.Control.CallSub(Set_Properties)
+	'showing form
+	Gui.Form_Racks..Show
+	
+	Gui.Form_Racks.tabMaint.SetTab(0)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Form_Racks_UnLoad.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	
+	'checking if connection is still open if so close it before exiting program
+	F.Intrinsic.Control.If(V.ODBC.Con.Exists,=,True)
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+	'ending program
+	F.Intrinsic.Control.End
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Form_Racks_UnLoad.End
+
+Program.Sub.cmdAddRack_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sData.Declare(String,"")
+	V.Local.sRet.Declare(String,"")
+	
+	'setting rack text to variable to allow it to be trimmed.
+	V.Local.sData.Set(V.Screen.Form_Racks!txtRack.Text)
+	
+	'adding row if datatable is blank no need to see if rack already exists in table
+	F.Intrinsic.Control.If(V.DataTable.Racks.RowCount--,=,-1)
+		F.Data.DataTable.AddRow("Racks","Rack",V.Local.sData.Trim)
+		F.Intrinsic.Control.CallSub(Save_Racks)
+		Gui.Form_Racks.txtRack.Text("")
+	F.Intrinsic.Control.Else
+		'checking if rack name already exists before adding to table
+		F.Intrinsic.String.Build("Rack = '{0}'",V.Local.sData.Trim,V.Local.sRet)
+		F.Data.DataTable.Select("Racks",V.Local.sRet.Trim,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet.UCase,=,"***NORETURN***")
+			F.Data.DataTable.AddRow("Racks","Rack",V.Local.sData.Trim)
+			F.Intrinsic.Control.CallSub(Save_Racks)
+			Gui.Form_Racks.txtRack.Text("")
+		F.Intrinsic.Control.Else
+			'notifying user the rack name just entered already exists
+			F.Intrinsic.UI.Msgbox("Rack Name Already Exists")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	
+	'setting focus and selecting all so a new rack name can be entered.
+	Gui.Form_Racks.txtRack.SetFocus
+	Gui.Form_Racks.txtRack.SelectAll
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdAddRack_Click.End
+
+Program.Sub.Set_Anchors.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	'setting anchors
+	'anchor all side on grid
+	Gui.Form_Racks.GsGridControlRacks.Anchor(15)
+	'anchor top and left
+	Gui.Form_Racks.cmdAddRack.Anchor(5)
+	Gui.Form_Racks.lblRack.Anchor(5)
+	Gui.Form_Racks.txtRack.Anchor(5)
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Set_Anchors.End
+
+Program.Sub.Get_Data.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sSql.Declare(String,"")
+	
+	'getting racks names from custom table
+	V.Local.sSql.Set("Select Rack From GCG_4773_Racks")
+	
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	'creating datatable for racks that will be displayedo on the grid.
+	F.Data.DataTable.CreateFromSQL("Racks","con",V.Local.sSql,True)
+	
+	'getting proc types
+	V.Local.sSql.Set("Select Proc_Type, Proc_Type_Seq, Description From GCG_4773_Proc_Type")
+	F.Data.DataTable.CreateFromSQL("Proc","con",V.Local.sSql,True)
+	
+	F.ODBC.Connection!Con.Close
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Get_Data.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.Data.DataTable.AddColumn("Racks","Delete","String")
+	
+	Gui.Form_Racks.GsGridControlRacks.AddGridviewFromDatatable("Racks","Racks")
+	'creating delete button on the grid to allow user to remove rack names 
+	Gui.Form_Racks.GsGridControlRacks.ColumnEdit("Racks","Delete","EditorButton","Delete")
+	'making grid non editable
+	Gui.Form_Racks.GsGridControlRacks.SetGridviewProperty("Racks","Editable",False)
+	Gui.Form_Racks.GsGridControlRacks.SetGridviewProperty("Racks","ReadOnly",True)
+	
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Delete","Caption"," ")
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Rack","Caption","Rack")
+	
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Rack","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Rack","HeaderForeColor","White")
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Delete","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Delete","HeaderForeColor","White")
+	
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Delete","MaxWidth","75")
+	Gui.Form_Racks.GsGridControlRacks.SetColumnProperty("Racks","Delete","width","75")
+	'setting mask so all enterys will be capitable
+	Gui.Form_Racks.txtRack.Mask(">")
+	'setting data to grid
+	Gui.Form_Racks.GsGridControlRacks.MainView("Racks")
+	
+	F.Data.DataTable.AddColumn("Proc","Delete","String")
+	
+	Gui.Form_Racks.GsGridControlProcType.AddGridviewFromDatatable("Proc","Proc")
+	'creating delete button
+	Gui.Form_Racks.GsGridControlProcType.ColumnEdit("Proc","Delete","EditorButton","Delete")
+	'making grid non editable
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","Allowedit",False)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","ReadOnly",True)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type","Allowedit",False)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type","ReadOnly",True)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Description","Allowedit",True)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Description","ReadOnly",False)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","Allowedit",True)
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","ReadOnly",False)
+	
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","Caption"," ")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type","Caption","Process Type")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","Caption","Seq")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Description","Caption","Description")
+	
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","HeaderForeColor","White")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type","HeaderForeColor","White")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","HeaderForeColor","White")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Description","HeaderBackColor","Green")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Description","HeaderForeColor","White")
+	
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","MaxWidth","75")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Delete","width","75")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","MaxWidth","50")
+	Gui.Form_Racks.GsGridControlProcType.SetColumnProperty("Proc","Proc_Type_Seq","width","50")
+	
+	'setting data to grid
+	Gui.Form_Racks.GsGridControlProcType.MainView("Proc")
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Set_Properties.End
+
+Program.Sub.Save_Racks.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	'saving data
+	F.Data.DataTable.SaveToDB("Racks","Con","GCG_4773_Racks","Rack",7,"Rack@!@Rack")
+	
+	F.Data.DataTable.AcceptChanges("Racks")
+	
+	F.ODBC.Connection!Con.Close
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Save_Racks.End
+
+Program.Sub.GsGridControlRacks_RowCellClick.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.Intrinsic.Control.If(V.Args.Column.UCase,=,"DELETE")
+		'removing current rowIndex from datatable
+		F.Data.DataTable.DeleteRow("Racks",V.Args.RowIndex)
+		F.Intrinsic.Control.CallSub(Save_Racks)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.GsGridControlRacks_RowCellClick.End
+
+Program.Sub.cmdProcTypeAdd_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sProc.Declare(String,"")
+	V.Local.sDesc.Declare(String,"")
+	V.Local.iSeq.Declare(Long,0)
+	V.Local.sRet.Declare(String,"")
+	V.Local.sExp.Declare(String,"")
+	
+	V.Local.sProc.Set(V.Screen.Form_Racks!txtProcType.Text)
+	V.Local.sDesc.Set(V.Screen.Form_Racks!txtProcDesc.Text)
+	
+	F.Intrinsic.Control.If(V.Local.sProc.Trim,<>,"")
+		F.Intrinsic.String.Build("Proc_Type = '{0}'",V.Local.sProc.Trim,V.Local.sExp)
+		F.Data.DataTable.Select("Proc",V.Local.sExp,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet.Trim,=,"***NORETURN***")
+			F.Intrinsic.Math.Add(V.DataTable.Proc.RowCount,1,V.Local.iSeq)
+			F.Data.DataTable.AddRow("Proc","Proc_Type",V.Local.sProc.Trim,"Proc_Type_Seq",V.Local.iSeq,"Description",V.Local.sDesc.Trim)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("Process Type already exists.  Description or Seq can be changed on the Grid.","Attention")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.CallSub(Save_Proc)
+	
+	Gui.Form_Racks.txtProcDesc.Text("")
+	Gui.Form_Racks.txtProcType.Text("")
+	Gui.Form_Racks.txtProcType.SetFocus
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdProcTypeAdd_Click.End
+
+Program.Sub.GsGridControlProcType_RowCellClick.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.i.Declare(Long,0)
+	V.Local.iSeq.Declare(Long)
+	
+	F.Intrinsic.Control.If(V.Args.Column.UCase,=,"DELETE")
+		'removing current rowIndex from datatable
+		F.Data.DataTable.DeleteRow("Proc",V.Args.RowIndex)
+		F.Data.DataView.Create("Proc","VProc",22,"","Proc_Type_Seq")
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataView.Proc!VProc.RowCount--,1)
+			F.Intrinsic.Math.Add(V.Local.i,1,V.Local.iSeq)
+			F.Data.DataView.SetValue("Proc","VProc",V.Local.i,"Proc_Type_Seq",V.Local.iSeq)
+		F.Intrinsic.Control.Next(V.Local.i)
+		F.Data.DataView.Close("Proc","VProc")
+		F.Intrinsic.Control.CallSub(Save_Proc)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.GsGridControlProcType_RowCellClick.End
+
+Program.Sub.Save_Proc.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	'saving data
+	F.Data.DataTable.SaveToDB("Proc","Con","GCG_4773_Proc_Type","Proc_Type",7,"Proc_Type@!@Proc_Type*!*Proc_Type_Seq@!@Proc_Type_Seq*!*Description@!@Description")
+	
+	F.Data.DataTable.AcceptChanges("Proc")
+	
+	F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Save_Proc.End
+
+Program.Sub.tabMaint_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	
+	F.Intrinsic.Control.If(V.Screen.Form_Racks!tabMaint.Tab,=,0)
+		Gui.Form_Racks.txtRack.SetFocus
+		Gui.Form_Racks.txtRack.SelectAll
+	F.Intrinsic.Control.Else
+		Gui.Form_Racks.txtProcType.SetFocus
+		Gui.Form_Racks.txtProcType.SelectAll
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.tabMaint_Click.End
+
+Program.Sub.cmdProcType_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare(String,"")
+	V.Local.sSQL.Declare(String,"")
+	V.Local.sTitles.Declare(String,"")
+	V.Local.sWidths.Declare(String,"")
+	V.Local.sRet.Declare(String,"")
+	
+	V.Local.sSQL.Set("SELECT DISTINCT Work_Group, Descr FROM V_WorkGroup_Head ORDER BY Work_Group ASC")
+	V.Local.sTitles.Set("Process Type*!*Description")
+	V.Local.sWidths.Set("1300*!*6700")
+	
+	F.Intrinsic.String.Split(V.Local.sTitles,"*!*",V.Local.sTitles)
+	F.Intrinsic.String.Split(V.Local.sWidths,"*!*",V.Local.sWidths)
+	
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	
+	F.Intrinsic.UI.Browser("Select Process Type","con",V.Local.sSQL,V.Local.sTitles,V.Local.sWidths,8000,12000,V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		V.Local.sRet.RedimPreserve(0,1)
+		Gui.Form_Racks.txtProcType.Text(V.Local.sRet.Trim)
+		Gui.Form_Racks.txtProcDesc.Text(V.Local.sRet(1).Trim)
+	F.Intrinsic.Control.EndIf
+	
+	F.ODBC.Connection!Con.Close
+	
+	F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4773_Paint_Rack_Maint.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Form_Racks_UnLoad)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.cmdProcType_Click.End
+
+
